@@ -1,6 +1,5 @@
 import { createAction } from '@reduxjs/toolkit';
 import { addDays } from 'date-fns';
-import type { RootState } from '../../../store';
 import { createAsyncThunk } from '../../../store/helpers';
 import { formatIsoDate, parseISO } from '../../../utils/dates/helpers/date';
 import type { DateInterval } from '../../../utils/dates/helpers/dateIntervals';
@@ -13,7 +12,7 @@ import { createLoadVisits, DEFAULT_BATCH_SIZE } from './createLoadVisits';
 interface VisitsAsyncThunkOptions<T extends LoadVisits = LoadVisits> {
   typePrefix: string;
   createLoaders: (params: T) => Loaders;
-  shouldCancel: (getState: () => RootState) => boolean;
+  shouldCancel: (getState: () => any) => boolean;
 }
 
 export const createVisitsAsyncThunk = <T extends LoadVisits = LoadVisits>(

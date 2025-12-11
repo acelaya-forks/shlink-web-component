@@ -1,5 +1,4 @@
 import { createAction } from '@reduxjs/toolkit';
-import type { RootState } from '../../../../store';
 import { createAsyncThunk } from '../../../../store/helpers';
 import { toApiParams } from '../../../helpers';
 import type { VisitsLoader } from '../../../reducers/common';
@@ -9,7 +8,7 @@ import { createLoadVisitsForComparison } from './createLoadVisitsForComparison';
 interface VisitsComparisonAsyncThunkOptions<CreateLoadersParam extends LoadVisitsForComparison> {
   typePrefix: string;
   createLoaders: (options: CreateLoadersParam) => Record<string, VisitsLoader>;
-  shouldCancel: (getState: () => RootState) => boolean;
+  shouldCancel: (getState: () => any) => boolean;
 }
 
 export const createVisitsComparisonAsyncThunk = <CreateLoadersParam extends LoadVisitsForComparison>(
