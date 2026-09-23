@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import { ShlinkSidebarVisibilityProvider } from '../src';
 import type { MainProps } from '../src/Main';
 import { Main } from '../src/Main';
@@ -64,25 +64,25 @@ describe('<Main />', () => {
     ['/tags/compare-visits', 'TagVisitsComparison'],
     ['/domains/compare-visits', 'DomainVisitsComparison'],
     ['/short-urls/compare-visits', 'ShortUrlVisitsComparison'],
-  ])('renders expected component based on location and server version', (currentPath, expectedContent) => {
+  ])('renders expected component based on location and server version', async (currentPath, expectedContent) => {
     setUp({ currentPath });
-    expect(screen.getByText(expectedContent)).toBeInTheDocument();
+    await expect.element(screen.getByText(expectedContent)).toBeInTheDocument();
   });
 
-  it('renders not-found when trying to navigate to invalid route', () => {
+  it('renders not-found when trying to navigate to invalid route', async () => {
     const createNotFound = () => <>Oops! Route not found.</>;
     setUp({ currentPath: '/foo/bar/baz', createNotFound });
 
-    expect(screen.getByText('Oops! Route not found.')).toBeInTheDocument();
+    await expect.element(screen.getByText('Oops! Route not found.')).toBeInTheDocument();
   });
 
-  it.each([true, false])('can decide whether to render a toggle button or not', (autoToggleButton) => {
+  it.each([true, false])('can decide whether to render a toggle button or not', async (autoToggleButton) => {
     setUp({ autoToggleButton });
 
     if (autoToggleButton) {
-      expect(screen.getByLabelText('Toggle sidebar')).toBeInTheDocument();
+      await expect.element(screen.getByLabelText('Toggle sidebar')).toBeInTheDocument();
     } else {
-      expect(screen.queryByLabelText('Toggle sidebar')).not.toBeInTheDocument();
+      await expect.element(screen.getByLabelText('Toggle sidebar')).not.toBeInTheDocument();
     }
   });
 });

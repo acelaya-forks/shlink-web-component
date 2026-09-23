@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import { fromPartial } from '@total-typescript/shoehorn';
 import type { UserEvent } from 'vitest/browser';
 import { DomainSelector } from '../../src/domains/DomainSelector';
@@ -21,7 +21,7 @@ describe('<DomainSelector />', () => {
 
   const switchToInputMode = async (user: UserEvent) => {
     await user.click(screen.getByRole('button', { name: 'Domain' }));
-    await user.click(await screen.findByText('New domain'));
+    await user.click(await screen.getByText('New domain').findElement());
   };
 
   it.each([
@@ -43,33 +43,33 @@ describe('<DomainSelector />', () => {
     const { user } = setUp(value);
     const btn = screen.getByRole('button', { name: expectedText });
 
-    expect(screen.queryByPlaceholderText('Domain')).not.toBeInTheDocument();
+    await expect.element(screen.getByPlaceholder('Domain')).not.toBeInTheDocument();
     if (hasPlaceholderClass) {
-      expect(btn).toHaveClass('text-placeholder');
+      await expect.element(btn).toHaveClass('text-placeholder');
     } else {
-      expect(btn).not.toHaveClass('text-placeholder');
+      await expect.element(btn).not.toHaveClass('text-placeholder');
     }
     await user.click(btn);
 
-    await waitFor(() => expect(screen.getByRole('menu')).toBeInTheDocument());
-    expect(screen.getAllByRole('menuitem')).toHaveLength(4);
+    await expect.element(screen.getByRole('menu')).toBeInTheDocument();
+    expect(screen.getByRole('menuitem').all()).toHaveLength(4);
   });
 
   it('allows toggling between dropdown and input', async () => {
     const { user } = setUp();
 
-    expect(screen.queryByPlaceholderText('Domain')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Domain' })).toBeInTheDocument();
+    await expect.element(screen.getByPlaceholder('Domain')).not.toBeInTheDocument();
+    await expect.element(screen.getByRole('button', { name: 'Domain' })).toBeInTheDocument();
 
     await switchToInputMode(user);
 
-    expect(screen.getByPlaceholderText('Domain')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Domain' })).not.toBeInTheDocument();
+    await expect.element(screen.getByPlaceholder('Domain')).toBeInTheDocument();
+    await expect.element(screen.getByRole('button', { name: 'Domain' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Back to domains list' }));
 
-    expect(screen.queryByPlaceholderText('Domain')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Domain' })).toBeInTheDocument();
+    await expect.element(screen.getByPlaceholder('Domain')).not.toBeInTheDocument();
+    await expect.element(screen.getByRole('button', { name: 'Domain' })).toBeInTheDocument();
   });
 
   it.each([
@@ -80,8 +80,8 @@ describe('<DomainSelector />', () => {
     const { user } = setUp();
 
     await user.click(screen.getByRole('button', { name: 'Domain' }));
-    const items = await screen.findAllByRole('menuitem');
+    const items = screen.getByRole('menuitem').all();
 
-    expect(items[index]).toHaveTextContent(expectedContent);
+    await expect.element(items[index]).toHaveTextContent(expectedContent);
   });
 });

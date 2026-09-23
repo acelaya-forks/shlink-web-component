@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { DEFAULT_DOMAIN } from '../../../src/domains/data';
 import type { DomainFilterDropdownProps } from '../../../src/domains/helpers/DomainFilterDropdown';
@@ -17,9 +17,9 @@ describe('<DomainFilterDropdown />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it('disables button when list of domains is empty', () => {
+  it('disables button when list of domains is empty', async () => {
     setUp({ domains: [] });
-    expect(screen.getByRole('button')).toBeDisabled();
+    await expect.element(screen.getByRole('button')).toBeDisabled();
   });
 
   it.each([
@@ -47,8 +47,8 @@ describe('<DomainFilterDropdown />', () => {
   it.each([
     { selectedDomain: DEFAULT_DOMAIN, expectedText: 'example.com' },
     { selectedDomain: 's.test', expectedText: 's.test' },
-  ])(`displays default domain name when value is ${DEFAULT_DOMAIN}`, ({ selectedDomain, expectedText }) => {
+  ])(`displays default domain name when value is ${DEFAULT_DOMAIN}`, async ({ selectedDomain, expectedText }) => {
     setUp({ value: selectedDomain });
-    expect(screen.getByRole('button')).toHaveTextContent(`Domain: ${expectedText}`);
+    await expect.element(screen.getByRole('button')).toHaveTextContent(`Domain: ${expectedText}`);
   });
 });

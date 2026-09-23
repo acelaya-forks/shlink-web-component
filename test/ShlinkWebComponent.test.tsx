@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import Bottle from 'bottlejs';
+import { page as screen } from 'vitest/browser';
 import type { TagColorsStorage } from '../src';
 import type { ShlinkApiClient } from '../src/api-contract';
 import { createShlinkWebComponent } from '../src/ShlinkWebComponent';
@@ -29,12 +30,12 @@ describe('<ShlinkWebComponent />', () => {
 
     setUp(fromPartial({}));
 
-    await waitFor(() => expect(bottle.container.TagColorsStorage).toBeDefined());
+    await expect.poll(() => bottle.container.TagColorsStorage).toBeDefined();
     expect(bottle.container.apiClientFactory).toBeDefined();
   });
 
   it('renders main content once store is created', async () => {
     setUp();
-    await waitFor(() => expect(screen.getByText('Overview')).toBeInTheDocument());
+    await expect.element(screen.getByText('Overview')).toBeInTheDocument();
   });
 });
