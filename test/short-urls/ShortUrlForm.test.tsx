@@ -5,6 +5,7 @@ import { formatISO } from 'date-fns';
 import type { UserEvent } from 'vitest/browser';
 import { ShortUrlForm } from '../../src/short-urls/ShortUrlForm';
 import { checkAccessibility } from '../__helpers__/accessibility';
+import { setNativeInputValue } from '../__helpers__/input';
 import { renderWithStore } from '../__helpers__/setUpTest';
 
 type SetUpOptions = {
@@ -60,8 +61,8 @@ describe('<ShortUrlForm />', () => {
       await user.type(screen.getByPlaceholderText('URL to be shortened'), 'https://long-domain.com/foo/bar');
       await user.type(screen.getByPlaceholderText('Title'), 'the title');
       await user.type(screen.getByLabelText('Maximum visits allowed:'), '20');
-      await user.type(screen.getByLabelText('Enabled since:'), '2017-01-01 12:25');
-      await user.type(screen.getByLabelText('Enabled until:'), '2017-01-06 08:33');
+      setNativeInputValue(screen.getByLabelText('Enabled since:'), '2017-01-01 12:25');
+      setNativeInputValue(screen.getByLabelText('Enabled until:'), '2017-01-06 08:33');
       await extraFields(user);
 
       expect(createShortUrl).not.toHaveBeenCalled();

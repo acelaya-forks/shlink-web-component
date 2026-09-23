@@ -67,7 +67,8 @@ describe('<EditDomainRedirectsModal />', () => {
       invalidShortUrlRedirect: null,
     });
 
-    await Promise.all(screen.getAllByPlaceholderText('No redirect').map((element) => user.clear(element)));
+    await user.clear(screen.getByDisplayValue('new_base_url'));
+    await user.clear(screen.getByDisplayValue('new_regular_404'));
     submitForm();
     expect(editDomainRedirects).toHaveBeenLastCalledWith({
       domain: 'foo.com',

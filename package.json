@@ -34,6 +34,7 @@
   ],
   "scripts": {
     "build": "vite build && cp ./src/tailwind.preset.css ./dist/tailwind.preset.css",
+    "vitest": "vitest",
     "test": "vitest run",
     "test:ci": "node --run test -- --coverage",
     "cs": "node --run lint && node --run format:check",
@@ -53,7 +54,7 @@
     "@fortawesome/free-solid-svg-icons": "^7.0.0",
     "@fortawesome/react-fontawesome": "^3.0.0",
     "@reduxjs/toolkit": "^2.5.1",
-    "@shlinkio/shlink-frontend-kit": "^1.6.0",
+    "@shlinkio/shlink-frontend-kit": "^1.6.1",
     "@shlinkio/shlink-js-sdk": "^3.2.1",
     "react": "^19.1",
     "react-dom": "^19.1",

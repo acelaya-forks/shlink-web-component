@@ -10,6 +10,7 @@ import { RedirectRuleModal } from '../../../src/redirect-rules/helpers/RedirectR
 import { countryCodes } from '../../../src/utils/country-codes';
 import { FeaturesProvider } from '../../../src/utils/features';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import { setNativeInputValue } from '../../__helpers__/input';
 import { renderWithEvents } from '../../__helpers__/setUpTest';
 import { TestModalWrapper } from '../../__helpers__/TestModalWrapper';
 
@@ -124,7 +125,7 @@ describe('<RedirectRuleModal />', () => {
 
     // Wait for modal to finish opening, otherwise focus may transition to long URL field while some other field is
     // being edited
-    await waitFor(() => expect(screen.getByLabelText('Long URL:')).toBeInTheDocument());
+    await screen.findByLabelText('Long URL:');
 
     // Change the long URL
     await user.clear(screen.getByLabelText('Long URL:'));
@@ -167,11 +168,11 @@ describe('<RedirectRuleModal />', () => {
 
     // Add a new condition of type before-date
     await addConditionWithType(user, 'before-date');
-    await user.type(screen.getByLabelText('Before:'), '2025-01-01 10:00');
+    setNativeInputValue(screen.getByLabelText('Before:'), '2025-01-01 10:00');
 
-    // Add a new condition of type after-date
+    // // Add a new condition of type after-date
     await addConditionWithType(user, 'after-date');
-    await user.type(screen.getByLabelText('After:'), '2035-01-01 10:00');
+    setNativeInputValue(screen.getByLabelText('After:'), '2035-01-01 10:00');
 
     // Add a new condition of type browser
     await addConditionWithType(user, 'browser');
@@ -179,22 +180,24 @@ describe('<RedirectRuleModal />', () => {
 
     await user.click(screen.getByRole('button', { name: 'Confirm' }));
 
-    expect(onSave).toHaveBeenCalledWith({
-      longUrl: 'https://www.example.com/edited',
-      conditions: [
-        { type: 'device', matchValue: 'ios', matchKey: null },
-        { type: 'query-param', matchValue: 'the_value', matchKey: 'the_key' },
-        { type: 'any-value-query-param', matchValue: null, matchKey: 'the_any_value_key' },
-        { type: 'valueless-query-param', matchValue: null, matchKey: 'the_valueless_key' },
-        { type: 'language', matchValue: 'es-ES', matchKey: null },
-        { type: 'ip-address', matchValue: '192.168.1.*', matchKey: null },
-        { type: 'geolocation-country-code', matchValue: 'CL', matchKey: null },
-        { type: 'geolocation-city-name', matchValue: 'Los Angeles', matchKey: null },
-        { type: 'before-date', matchValue: '2025-01-01T10:00:00Z', matchKey: null },
-        { type: 'after-date', matchValue: '2035-01-01T10:00:00Z', matchKey: null },
-        { type: 'browser', matchValue: 'firefox', matchKey: null },
-      ],
-    });
+    await expect
+      .poll(() => onSave)
+      .toHaveBeenCalledWith({
+        longUrl: 'https://www.example.com/edited',
+        conditions: [
+          { type: 'device', matchValue: 'ios', matchKey: null },
+          { type: 'query-param', matchValue: 'the_value', matchKey: 'the_key' },
+          { type: 'any-value-query-param', matchValue: null, matchKey: 'the_any_value_key' },
+          { type: 'valueless-query-param', matchValue: null, matchKey: 'the_valueless_key' },
+          { type: 'language', matchValue: 'es-ES', matchKey: null },
+          { type: 'ip-address', matchValue: '192.168.1.*', matchKey: null },
+          { type: 'geolocation-country-code', matchValue: 'CL', matchKey: null },
+          { type: 'geolocation-city-name', matchValue: 'Los Angeles', matchKey: null },
+          { type: 'before-date', matchValue: '2025-01-01T10:00:00Z', matchKey: null },
+          { type: 'after-date', matchValue: '2035-01-01T10:00:00Z', matchKey: null },
+          { type: 'browser', matchValue: 'firefox', matchKey: null },
+        ],
+      });
 
     // After form is submit, the modal itself is closed
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
