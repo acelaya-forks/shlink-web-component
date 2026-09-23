@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import { MapModal } from '../../../src/visits/helpers/MapModal';
 import type { CityStats } from '../../../src/visits/types';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -27,6 +28,6 @@ describe('<MapModal />', () => {
 
   it('renders expected map', () => {
     setUp();
-    expect(screen.getByRole('dialog')).toMatchSnapshot();
+    expect(screen.getByRole('dialog').element()).toMatchSnapshot();
   });
 });

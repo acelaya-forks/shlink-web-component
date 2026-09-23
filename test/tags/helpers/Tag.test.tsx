@@ -1,7 +1,7 @@
 import { brandColor } from '@shlinkio/shlink-frontend-kit';
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import type { ReactNode } from 'react';
+import { page as screen } from 'vitest/browser';
 import { Tag } from '../../../src/tags/helpers/Tag';
 import type { ColorGenerator } from '../../../src/utils/services/ColorGenerator';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -26,13 +26,15 @@ describe('<Tag />', () => {
 
   it.each([[brandColor()], ['#8A661C'], ['#F7BE05'], ['#5A02D8'], ['#202786']])(
     'includes generated color as backgroundColor',
-    (backgroundColor) => {
+    async (backgroundColor) => {
       stylesForKey.mockReturnValue({ backgroundColor });
 
       const { container } = setUp('foo');
       const { r, g, b } = hexToRgb(backgroundColor);
 
-      expect(container.firstChild).toHaveStyle({ backgroundColor: `rgb(${r}, ${g}, ${b})` });
+      await expect
+        .element(container.firstChild as HTMLElement)
+        .toHaveStyle({ backgroundColor: `rgb(${r}, ${g}, ${b})` });
     },
   );
 
@@ -57,22 +59,25 @@ describe('<Tag />', () => {
     [true, 1, false],
     [false, 0, true],
     [undefined, 0, true],
-  ])('includes a close component when the tag is clearable', (clearable, expectedCloseBtnAmount, expectedPointer) => {
-    const { container } = setUp('foo', clearable);
+  ])(
+    'includes a close component when the tag is clearable',
+    async (clearable, expectedCloseBtnAmount, expectedPointer) => {
+      const { container } = setUp('foo', clearable);
 
-    expect(screen.queryAllByLabelText(/^Remove/)).toHaveLength(expectedCloseBtnAmount);
-    if (expectedPointer) {
-      expect(container.firstChild).toHaveClass('cursor-pointer');
-    } else {
-      expect(container.firstChild).not.toHaveClass('cursor-pointer');
-    }
-  });
+      expect(screen.getByLabelText(/^Remove/).all()).toHaveLength(expectedCloseBtnAmount);
+      if (expectedPointer) {
+        await expect.element(container.firstChild as HTMLElement).toHaveClass('cursor-pointer');
+      } else {
+        await expect.element(container.firstChild as HTMLElement).not.toHaveClass('cursor-pointer');
+      }
+    },
+  );
 
   it.each([
     [undefined, 'foo'],
     ['bar', 'bar'],
-  ])('falls back to text as children when no children are provided', (children, expectedChildren) => {
+  ])('falls back to text as children when no children are provided', async (children, expectedChildren) => {
     const { container } = setUp('foo', false, children);
-    expect(container.firstChild).toHaveTextContent(expectedChildren);
+    await expect.element(container.firstChild as HTMLElement).toHaveTextContent(expectedChildren);
   });
 });

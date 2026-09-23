@@ -1,9 +1,10 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { UserEvent } from 'vitest/browser';
 import { SettingsProvider } from '../../../src/settings';
 import { QrCodeModal } from '../../../src/short-urls/helpers/QrCodeModal';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import { setNativeInputValue } from '../../__helpers__/input';
 import { renderWithEvents } from '../../__helpers__/setUpTest';
 
 describe('<QrCodeModal />', () => {
@@ -22,13 +23,13 @@ describe('<QrCodeModal />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it('shows an external link to the URL in the header', () => {
+  it('shows an external link to the URL in the header', async () => {
     setUp();
-    const externalLink = screen.getByRole('heading').querySelector('a');
+    const externalLink = screen.getByRole('heading').element().querySelector('a');
 
-    expect(externalLink).toBeInTheDocument();
-    expect(externalLink).toHaveAttribute('href', shortUrl);
-    expect(externalLink).toHaveAttribute('rel', 'noopener noreferrer');
+    await expect.element(externalLink).toBeInTheDocument();
+    await expect.element(externalLink).toHaveAttribute('href', shortUrl);
+    await expect.element(externalLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
   // FIXME Snapshots do not match when run in CI, because it generate some slightly off coordinates.
@@ -38,13 +39,13 @@ describe('<QrCodeModal />', () => {
     {
       // Setting size and margin
       applyChanges: () => {
-        const [sizeInput, marginInput] = screen.getAllByRole('slider');
+        const [sizeInput, marginInput] = screen.getByRole('slider').all();
         if (!sizeInput || !marginInput) {
           throw new Error('Sliders not found');
         }
 
-        fireEvent.change(sizeInput, { target: { value: '560' } });
-        fireEvent.change(marginInput, { target: { value: '20' } });
+        setNativeInputValue(sizeInput.element() as HTMLInputElement, '560');
+        setNativeInputValue(marginInput.element() as HTMLInputElement, '20');
       },
     },
     {
@@ -57,8 +58,8 @@ describe('<QrCodeModal />', () => {
     {
       // Set custom colors
       applyChanges: () => {
-        fireEvent.change(screen.getByLabelText('color picker'), { target: { value: '#ff0000' } });
-        fireEvent.change(screen.getByLabelText('background picker'), { target: { value: '#0000ff' } });
+        setNativeInputValue(screen.getByLabelText('color picker').element() as HTMLInputElement, '#ff0000');
+        setNativeInputValue(screen.getByLabelText('background picker').element() as HTMLInputElement, '#0000ff');
       },
     },
     {
@@ -78,7 +79,7 @@ describe('<QrCodeModal />', () => {
     const { user } = setUp();
 
     await applyChanges(user);
-    expect(screen.getByTestId('qr-code-container')).toMatchSnapshot();
+    expect(screen.getByTestId('qr-code-container').element()).toMatchSnapshot();
   });
 
   it.each(['logo.png', 'some-image.svg', 'whatever.jpg'])('allows logo to be seat and cleared', async (logoName) => {
@@ -86,20 +87,22 @@ describe('<QrCodeModal />', () => {
     const { user } = setUp();
 
     // At first, we can select a logo
-    expect(screen.getByRole('button', { name: 'Select logo' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /^Clear logo/ })).not.toBeInTheDocument();
+    await expect.element(screen.getByRole('button', { name: 'Select logo' })).toBeInTheDocument();
+    await expect.element(screen.getByRole('button', { name: /^Clear logo/ })).not.toBeInTheDocument();
 
     await user.upload(screen.getByTestId('logo-input'), [logo]);
 
     // Once a logo has been selected, we can clear it
-    expect(screen.queryByRole('button', { name: 'Select logo' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^Clear logo/ })).toHaveTextContent(`Clear logo (${logoName})`);
+    await expect.element(screen.getByRole('button', { name: 'Select logo' })).not.toBeInTheDocument();
+    await expect
+      .element(screen.getByRole('button', { name: /^Clear logo/ }))
+      .toHaveTextContent(`Clear logo (${logoName})`);
 
     await user.click(screen.getByRole('button', { name: /^Clear logo/ }));
 
     // After clearing previous logo, we can select a new one
-    expect(screen.getByRole('button', { name: 'Select logo' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /^Clear logo/ })).not.toBeInTheDocument();
+    await expect.element(screen.getByRole('button', { name: 'Select logo' })).toBeInTheDocument();
+    await expect.element(screen.getByRole('button', { name: /^Clear logo/ })).not.toBeInTheDocument();
   });
 
   // FIXME This test needs some investigation
@@ -122,9 +125,9 @@ describe('<QrCodeModal />', () => {
       await user.click(screen.getByRole('menuitem', { name: format }));
       // Copy to clipboard
       await user.click(screen.getByLabelText('Copy data URI'));
-      await waitFor(() =>
-        expect(writeText).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`^data:image/${format}`))),
-      );
+      await expect
+        .poll(() => writeText)
+        .toHaveBeenCalledWith(expect.stringMatching(new RegExp(`^data:image/${format}`)));
     } finally {
       vi.unstubAllGlobals();
     }

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import type { QrErrorCorrection } from '../../../../src/settings';
 import { QrErrorCorrectionDropdown } from '../../../../src/short-urls/helpers/qr-codes/QrErrorCorrectionDropdown';
 import { checkAccessibility } from '../../../__helpers__/accessibility';
@@ -28,14 +28,14 @@ describe('<QrErrorCorrectionDropdown />', () => {
     const { user } = setUp();
     const btn = screen.getByRole('button');
 
-    expect(btn).toHaveTextContent('Error correction (Q)');
+    await expect.element(btn).toHaveTextContent('Error correction (Q)');
     await user.click(btn);
-    const items = screen.getAllByRole('menuitem');
+    const items = screen.getByRole('menuitem').all();
 
-    expect(items[0]).toHaveAttribute('data-selected', 'false');
-    expect(items[1]).toHaveAttribute('data-selected', 'false');
-    expect(items[2]).toHaveAttribute('data-selected', 'true');
-    expect(items[3]).toHaveAttribute('data-selected', 'false');
+    await expect.element(items[0]).toHaveAttribute('data-selected', 'false');
+    await expect.element(items[1]).toHaveAttribute('data-selected', 'false');
+    await expect.element(items[2]).toHaveAttribute('data-selected', 'true');
+    await expect.element(items[3]).toHaveAttribute('data-selected', 'false');
   });
 
   it('invokes callback when items are clicked', async () => {

@@ -1,5 +1,5 @@
 import { Card } from '@shlinkio/shlink-frontend-kit';
-import { screen } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import { PaginationDropdown } from '../../../src/utils/components/PaginationDropdown';
 import { checkAccessibility } from '../../__helpers__/accessibility';
 import { renderWithEvents } from '../../__helpers__/setUpTest';
@@ -24,7 +24,7 @@ describe('<PaginationDropdown />', () => {
 
   it('renders expected amount of items', async () => {
     await setUp();
-    expect(screen.getAllByRole('menuitem')).toHaveLength(5);
+    expect(screen.getByRole('menuitem').all()).toHaveLength(5);
   });
 
   it.each([
@@ -36,7 +36,7 @@ describe('<PaginationDropdown />', () => {
     const { user } = await setUp();
 
     expect(setValue).not.toHaveBeenCalled();
-    await user.click(screen.getAllByRole('menuitem')[index]);
+    await user.click(screen.getByRole('menuitem').all()[index]);
     expect(setValue).toHaveBeenCalledWith(expectedValue);
   });
 });

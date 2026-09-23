@@ -1,6 +1,6 @@
-import { page as screen } from 'vitest/browser';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { UserEvent } from 'vitest/browser';
 import type { Domain } from '../../../src/domains/data';
 import { DEFAULT_DOMAIN } from '../../../src/domains/data';
@@ -76,7 +76,9 @@ describe('<DomainDropdown />', () => {
     const { user } = setUp({ domain: fromPartial({ domain: 'foo.com', isDefault }) });
     await openMenu(user);
 
-    await expect.element(screen.getByText('Visit stats')).toHaveAttribute('href', `/server/123/domain/foo.com${expectedLink}/visits`);
+    await expect
+      .element(screen.getByText('Visit stats'))
+      .toHaveAttribute('href', `/server/123/domain/foo.com${expectedLink}/visits`);
   });
 
   it.each([
@@ -86,10 +88,9 @@ describe('<DomainDropdown />', () => {
     const { user } = setUp({ domain: fromPartial({ domain: 'foo.com', isDefault }) });
     await openMenu(user);
 
-    await expect.element(screen.getByText('Short URLs')).toHaveAttribute(
-      'href',
-      `/server/123/list-short-urls/1?domain=${expectedLink}`,
-    );
+    await expect
+      .element(screen.getByText('Short URLs'))
+      .toHaveAttribute('href', `/server/123/list-short-urls/1?domain=${expectedLink}`);
   });
 
   it.each([['foo.com'], ['bar.org'], ['baz.net']])('displays modal when editing redirects', async (domain) => {

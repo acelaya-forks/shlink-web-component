@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { Settings } from '../../../src/settings';
 import { defaultVisitsListColumns, SettingsProvider } from '../../../src/settings';
 import { visitsListColumns, VisitsListSettings } from '../../../src/settings/components/VisitsListSettings';
@@ -17,15 +17,15 @@ describe('<VisitsListSettings />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it('renders expected list of controls', () => {
+  it('renders expected list of controls', async () => {
     setUp();
 
     const items = Object.entries(visitsListColumns);
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(items.length);
-    items.forEach(([, name]) => {
-      expect(screen.getByLabelText(new RegExp(`^${name}`))).toBeInTheDocument();
-    });
+    expect(screen.getByRole('listitem').all()).toHaveLength(items.length);
+    await Promise.all(
+      items.map(([, name]) => expect.element(screen.getByLabelText(new RegExp(`^${name}`))).toBeInTheDocument()),
+    );
   });
 
   it('changes enabled columns when a toggle is clicked', async () => {

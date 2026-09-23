@@ -3,8 +3,8 @@ import type {
   ShlinkRedirectConditionType,
   ShlinkRedirectRuleData,
 } from '@shlinkio/shlink-js-sdk/api-contract';
-import { screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { UserEvent } from 'vitest/browser';
 import { RedirectRuleModal } from '../../../src/redirect-rules/helpers/RedirectRuleModal';
 import { countryCodes } from '../../../src/utils/country-codes';
@@ -55,7 +55,7 @@ describe('<RedirectRuleModal />', () => {
     );
   const addConditionWithType = async (user: UserEvent, option: ShlinkRedirectConditionType) => {
     await user.click(screen.getByLabelText('Add condition'));
-    const [lastTypeSelect] = screen.getAllByLabelText('Type:').reverse();
+    const [lastTypeSelect] = screen.getByLabelText('Type:').all().reverse();
     await user.selectOptions(lastTypeSelect, [option]);
   };
 
@@ -88,27 +88,27 @@ describe('<RedirectRuleModal />', () => {
     };
     const { user } = setUp({ initialData });
 
-    expect(screen.getAllByLabelText('Type:')).toHaveLength(2);
+    expect(screen.getByLabelText('Type:').all()).toHaveLength(2);
 
     await user.click(screen.getByLabelText('Add condition'));
-    expect(screen.getAllByLabelText('Type:')).toHaveLength(3);
+    expect(screen.getByLabelText('Type:').all()).toHaveLength(3);
 
     await user.click(screen.getByLabelText('Add condition'));
     await user.click(screen.getByLabelText('Add condition'));
-    expect(screen.getAllByLabelText('Type:')).toHaveLength(5);
+    expect(screen.getByLabelText('Type:').all()).toHaveLength(5);
   });
 
   it.each([[[]], [[{ type: 'device', matchValue: 'android', matchKey: null } satisfies ShlinkRedirectCondition]]])(
     'disables confirm button as long as there are no conditions',
-    (conditions) => {
+    async (conditions) => {
       setUp({
         initialData: { longUrl: 'https://example.com', conditions },
       });
 
       if (conditions.length === 0) {
-        expect(screen.getByRole('button', { name: 'Confirm' })).toHaveAttribute('disabled');
+        await expect.element(screen.getByRole('button', { name: 'Confirm' })).toHaveAttribute('disabled');
       } else {
-        expect(screen.getByRole('button', { name: 'Confirm' })).not.toHaveAttribute('disabled');
+        await expect.element(screen.getByRole('button', { name: 'Confirm' })).not.toHaveAttribute('disabled');
       }
     },
   );
@@ -125,7 +125,7 @@ describe('<RedirectRuleModal />', () => {
 
     // Wait for modal to finish opening, otherwise focus may transition to long URL field while some other field is
     // being edited
-    await screen.findByLabelText('Long URL:');
+    await screen.getByLabelText('Long URL:').findElement();
 
     // Change the long URL
     await user.clear(screen.getByLabelText('Long URL:'));
@@ -141,14 +141,14 @@ describe('<RedirectRuleModal />', () => {
 
     // Add a new condition of type any-value-query-param
     await addConditionWithType(user, 'any-value-query-param');
-    await user.type(screen.getAllByLabelText('Param name:').reverse()[0], 'the_any_value_key');
+    await user.type(screen.getByLabelText('Param name:').all().reverse()[0], 'the_any_value_key');
 
     // Add a new condition of type valueless-query-param
     await addConditionWithType(user, 'valueless-query-param');
-    await user.type(screen.getAllByLabelText('Param name:').reverse()[0], 'the_valueless_key');
+    await user.type(screen.getByLabelText('Param name:').all().reverse()[0], 'the_valueless_key');
 
     // Remove the existing language condition
-    await user.click(screen.getAllByLabelText('Remove condition')[1]);
+    await user.click(screen.getByLabelText('Remove condition').all()[1]);
 
     // Add a new condition of type language
     await addConditionWithType(user, 'language');
@@ -168,11 +168,11 @@ describe('<RedirectRuleModal />', () => {
 
     // Add a new condition of type before-date
     await addConditionWithType(user, 'before-date');
-    setNativeInputValue(screen.getByLabelText('Before:'), '2025-01-01 10:00');
+    setNativeInputValue(screen.getByLabelText('Before:').element() as HTMLInputElement, '2025-01-01 10:00');
 
     // // Add a new condition of type after-date
     await addConditionWithType(user, 'after-date');
-    setNativeInputValue(screen.getByLabelText('After:'), '2035-01-01 10:00');
+    setNativeInputValue(screen.getByLabelText('After:').element() as HTMLInputElement, '2035-01-01 10:00');
 
     // Add a new condition of type browser
     await addConditionWithType(user, 'browser');
@@ -199,8 +199,8 @@ describe('<RedirectRuleModal />', () => {
         ],
       });
 
-    // After form is submit, the modal itself is closed
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    // After form is submit, the modal itself should be closed
+    await expect.element(screen.getByRole('dialog')).not.toBeInTheDocument();
   });
 
   it.each([
@@ -210,7 +210,7 @@ describe('<RedirectRuleModal />', () => {
       advancedQueryRedirectConditions: false,
       dateRedirectConditions: false,
       browserRedirectConditions: false,
-      expectedOptions: ['Device', 'Language', 'Query param'] as const,
+      expectedOptions: ['Device type', 'Language', 'Query param'] as const,
     },
     {
       ipRedirectCondition: true,
@@ -218,7 +218,7 @@ describe('<RedirectRuleModal />', () => {
       advancedQueryRedirectConditions: false,
       dateRedirectConditions: false,
       browserRedirectConditions: false,
-      expectedOptions: ['Device', 'Language', 'Query param', 'IP address'] as const,
+      expectedOptions: ['Device type', 'Language', 'Query param', 'IP address'] as const,
     },
     {
       ipRedirectCondition: true,
@@ -227,7 +227,7 @@ describe('<RedirectRuleModal />', () => {
       dateRedirectConditions: false,
       browserRedirectConditions: false,
       expectedOptions: [
-        'Device',
+        'Device type',
         'Language',
         'Query param',
         'IP address',
@@ -242,7 +242,7 @@ describe('<RedirectRuleModal />', () => {
       dateRedirectConditions: false,
       browserRedirectConditions: false,
       expectedOptions: [
-        'Device',
+        'Device type',
         'Language',
         'Query param',
         'Any value query param',
@@ -259,7 +259,7 @@ describe('<RedirectRuleModal />', () => {
       dateRedirectConditions: false,
       browserRedirectConditions: true,
       expectedOptions: [
-        'Device',
+        'Device type',
         'Language',
         'Query param',
         'Any value query param',
@@ -277,7 +277,7 @@ describe('<RedirectRuleModal />', () => {
       dateRedirectConditions: true,
       browserRedirectConditions: false,
       expectedOptions: [
-        'Device',
+        'Device type',
         'Language',
         'Query param',
         'Any value query param',
@@ -295,7 +295,7 @@ describe('<RedirectRuleModal />', () => {
     // Add a condition box, with a type other than device-type (default one), so that device type options do not affect
     // assertions and cause false negatives
     await addConditionWithType(user, 'language');
-    const options = screen.getAllByRole('option');
+    const options = screen.getByRole('option').all();
 
     expect(options).toHaveLength(expectedOptions.length);
     options.forEach((option, index) => {
@@ -326,11 +326,9 @@ describe('<RedirectRuleModal />', () => {
     const { user } = setUp({ desktopDeviceTypes });
 
     await addConditionWithType(user, 'device');
-    const options = screen.getByLabelText('Device type:').querySelectorAll('option');
+    const options = [...screen.getByLabelText('Device type:').element().querySelectorAll('option')];
 
     expect(options).toHaveLength(expectedOptions.length);
-    options.forEach((option, index) => {
-      expect(option).toHaveTextContent(expectedOptions[index]);
-    });
+    await Promise.all(options.map((option, index) => expect.element(option).toHaveTextContent(expectedOptions[index])));
   });
 });

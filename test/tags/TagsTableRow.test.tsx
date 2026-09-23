@@ -1,6 +1,6 @@
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { UserEvent } from 'vitest/browser';
 import { ContainerProvider } from '../../src/container/context';
 import { TagsTableRow } from '../../src/tags/TagsTableRow';
@@ -48,47 +48,59 @@ describe('<TagsTableRow />', () => {
   it.each([
     [undefined, '0', '0'],
     [{ shortUrls: 10, visits: 3480 }, '10', '3,480'],
-  ])('shows expected tag stats', (stats, expectedShortUrls, expectedVisits) => {
+  ])('shows expected tag stats', async (stats, expectedShortUrls, expectedVisits) => {
     setUp(stats);
 
-    const [shortUrlsLink, visitsLink] = screen.getAllByRole('link');
+    const [shortUrlsLink, visitsLink] = screen.getByRole('link').all();
 
-    expect(shortUrlsLink).toHaveTextContent(expectedShortUrls);
-    expect(shortUrlsLink).toHaveAttribute('href', `/server/abc123/list-short-urls/1?tags=${encodeURIComponent(tag)}`);
-    expect(visitsLink).toHaveTextContent(expectedVisits);
-    expect(visitsLink).toHaveAttribute('href', `/server/abc123/tag/${tag}/visits`);
+    await Promise.all([
+      expect.element(shortUrlsLink).toMatchTextContent(expectedShortUrls),
+      expect
+        .element(shortUrlsLink)
+        .toHaveAttribute('href', `/server/abc123/list-short-urls/1?tags=${encodeURIComponent(tag)}`),
+      expect.element(visitsLink).toMatchTextContent(expectedVisits),
+      expect.element(visitsLink).toHaveAttribute('href', `/server/abc123/tag/${tag}/visits`),
+    ]);
   });
 
   it('allows toggling dropdown menu', async () => {
     const { user } = setUp();
 
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    await expect.element(screen.getByRole('menu')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button'));
-    expect(screen.queryByRole('menu')).toBeInTheDocument();
+    await expect.element(screen.getByRole('menu')).toBeInTheDocument();
   });
 
   it('allows toggling edit modal', async () => {
     const { user } = setUp();
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Edit tag' })).not.toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByRole('dialog')).not.toBeInTheDocument(),
+      expect.element(screen.getByRole('heading', { name: 'Edit tag' })).not.toBeInTheDocument(),
+    ]);
 
     await clickMenuItem(user, 'Edit');
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Edit tag' })).toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByRole('dialog')).toBeInTheDocument(),
+      expect.element(screen.getByRole('heading', { name: 'Edit tag' })).toBeInTheDocument(),
+    ]);
   });
 
   it('allows toggling delete modal', async () => {
     const { user } = setUp();
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Delete tag' })).not.toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByRole('dialog')).not.toBeInTheDocument(),
+      expect.element(screen.getByRole('heading', { name: 'Delete tag' })).not.toBeInTheDocument(),
+    ]);
 
     await clickMenuItem(user, 'Delete tag');
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Delete tag' })).toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByRole('dialog')).toBeInTheDocument(),
+      expect.element(screen.getByRole('heading', { name: 'Delete tag' })).toBeInTheDocument(),
+    ]);
   });
 
   it.each([[undefined], [{ itemsToCompare: [{ name: tag, query: '' }], canAddItemWithName: () => false }]])(
@@ -97,7 +109,7 @@ describe('<TagsTableRow />', () => {
       const { user } = setUp({ visitsComparison });
       await user.click(screen.getByRole('button'));
 
-      expect(screen.getByRole('menuitem', { name: 'Compare visits' })).toHaveAttribute('disabled');
+      await expect.element(screen.getByRole('menuitem', { name: 'Compare visits' })).toHaveAttribute('disabled');
     },
   );
 

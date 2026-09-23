@@ -1,6 +1,6 @@
 import type { ShlinkRedirectCondition } from '@shlinkio/shlink-js-sdk/api-contract';
-import { screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { RedirectRuleCardProps } from '../../../src/redirect-rules/helpers/RedirectRuleCard';
 import { RedirectRuleCard } from '../../../src/redirect-rules/helpers/RedirectRuleCard';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -50,33 +50,35 @@ describe('<RedirectRuleCard />', () => {
     expect(onMoveDown).toHaveBeenCalledOnce();
   });
 
-  it('disables up and down button for corner rules', () => {
+  it('disables up and down button for corner rules', async () => {
     setUp({ priority: 1, isLast: true });
 
-    expect(screen.getByLabelText('Move rule with priority 1 up')).toBeDisabled();
-    expect(screen.getByLabelText('Move rule with priority 1 down')).toBeDisabled();
+    await expect.element(screen.getByLabelText('Move rule with priority 1 up')).toBeDisabled();
+    await expect.element(screen.getByLabelText('Move rule with priority 1 down')).toBeDisabled();
   });
 
-  it('renders human-friendly conditions', () => {
+  it('renders human-friendly conditions', async () => {
     setUp({
       redirectRule: fromPartial({ conditions }),
     });
 
-    expect(screen.getByText('Device is android')).toBeInTheDocument();
-    expect(screen.getByText('es-ES language is accepted')).toBeInTheDocument();
-    expect(screen.getByText('Query string contains "foo=bar"')).toBeInTheDocument();
-    expect(screen.getByText('Query string contains "foo-any-value" param')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'Query string contains "foo-valueless" param without a value (https://example.com?foo-valueless)',
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByText('IP address matches 1.2.3.4')).toBeInTheDocument();
-    expect(screen.getByText('Country code is FR')).toBeInTheDocument();
-    expect(screen.getByText('City name is Paris')).toBeInTheDocument();
-    expect(screen.getByText('Date is before 2025-01-01 00:00')).toBeInTheDocument();
-    expect(screen.getByText('Date is after 2035-01-01 00:00')).toBeInTheDocument();
-    expect(screen.getByText('Browser is chrome')).toBeInTheDocument();
+    await expect.element(screen.getByText('Device is android')).toBeInTheDocument();
+    await expect.element(screen.getByText('es-ES language is accepted')).toBeInTheDocument();
+    await expect.element(screen.getByText('Query string contains "foo=bar"')).toBeInTheDocument();
+    await expect.element(screen.getByText('Query string contains "foo-any-value" param')).toBeInTheDocument();
+    await expect
+      .element(
+        screen.getByText(
+          'Query string contains "foo-valueless" param without a value (https://example.com?foo-valueless)',
+        ),
+      )
+      .toBeInTheDocument();
+    await expect.element(screen.getByText('IP address matches 1.2.3.4')).toBeInTheDocument();
+    await expect.element(screen.getByText('Country code is FR')).toBeInTheDocument();
+    await expect.element(screen.getByText('City name is Paris')).toBeInTheDocument();
+    await expect.element(screen.getByText('Date is before 2025-01-01 00:00')).toBeInTheDocument();
+    await expect.element(screen.getByText('Date is after 2035-01-01 00:00')).toBeInTheDocument();
+    await expect.element(screen.getByText('Browser is chrome')).toBeInTheDocument();
   });
 
   it('can delete the rule', async () => {
@@ -92,6 +94,6 @@ describe('<RedirectRuleCard />', () => {
     const { user } = setUp({ priority: 3 });
 
     await user.click(screen.getByLabelText('Edit rule with priority 3'));
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+    await expect.element(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });

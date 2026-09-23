@@ -1,5 +1,5 @@
-import { page as screen } from 'vitest/browser';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import { DEFAULT_DOMAIN } from '../../../src/domains/data';
 import type { DomainFilterDropdownProps } from '../../../src/domains/helpers/DomainFilterDropdown';
 import { DomainFilterDropdown } from '../../../src/domains/helpers/DomainFilterDropdown';

@@ -1,5 +1,5 @@
-import { screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { VisitsHighlightCardProps } from '../../../src/overview/helpers/VisitsHighlightCard';
 import { VisitsHighlightCard } from '../../../src/overview/helpers/VisitsHighlightCard';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -23,18 +23,18 @@ describe('<VisitsHighlightCard />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it.each([
-    [true, () => expect(screen.getByText('Loading...')).toBeInTheDocument()],
-    [false, () => expect(screen.queryByText('Loading...')).not.toBeInTheDocument()],
-  ])('displays loading message on loading', (loading, assert) => {
+    [true, () => expect.element(screen.getByText('Loading...')).toBeInTheDocument()],
+    [false, () => expect.element(screen.getByText('Loading...')).not.toBeInTheDocument()],
+  ])('displays loading message on loading', async (loading, assert) => {
     setUp({ loading });
-    assert();
+    await assert();
   });
 
   it('does not render tooltip when summary has no bots', async () => {
     const { user } = setUp({ title: 'Foo' });
 
     await user.hover(screen.getByText('Foo'));
-    expect(screen.queryByText(/potential bot visits$/)).not.toBeInTheDocument();
+    await expect.element(screen.getByText(/potential bot visits$/)).not.toBeInTheDocument();
   });
 
   it('renders tooltip when summary has bots', async () => {
@@ -44,7 +44,7 @@ describe('<VisitsHighlightCard />', () => {
     });
 
     await user.hover(screen.getByText('Foo'));
-    await waitFor(() => expect(screen.getByTestId('tooltip-amount')).toHaveTextContent('1,000'), { timeout: 2000 });
+    await expect.element(screen.getByTestId('tooltip-amount')).toHaveTextContent('1,000');
     await user.unhover(screen.getByText('Foo'));
   });
 
@@ -52,32 +52,32 @@ describe('<VisitsHighlightCard />', () => {
     [
       true,
       20,
-      () => {
-        expect(screen.getByText('20')).toBeInTheDocument();
-        expect(screen.queryByText('50')).not.toBeInTheDocument();
+      async () => {
+        await expect.element(screen.getByText('20')).toBeInTheDocument();
+        await expect.element(screen.getByText('50')).not.toBeInTheDocument();
       },
     ],
     [
       true,
       0,
-      () => {
-        expect(screen.getByText('0')).toBeInTheDocument();
-        expect(screen.queryByText('50')).not.toBeInTheDocument();
+      async () => {
+        await expect.element(screen.getByText('0')).toBeInTheDocument();
+        await expect.element(screen.getByText('50')).not.toBeInTheDocument();
       },
     ],
     [
       false,
       20,
-      () => {
-        expect(screen.getByText('50')).toBeInTheDocument();
-        expect(screen.queryByText('20')).not.toBeInTheDocument();
+      async () => {
+        await expect.element(screen.getByText('50')).toBeInTheDocument();
+        await expect.element(screen.getByText('20')).not.toBeInTheDocument();
       },
     ],
-  ])('displays non-bots when present and bots are excluded', (excludeBots, nonBots, assert) => {
+  ])('displays non-bots when present and bots are excluded', async (excludeBots, nonBots, assert) => {
     setUp({
       excludeBots,
       visitsSummary: { total: 50, bots: 0, nonBots },
     });
-    assert();
+    await assert();
   });
 });

@@ -1,7 +1,8 @@
 import type { ShlinkVisit } from '@shlinkio/shlink-js-sdk/api-contract';
-import { cleanup, screen } from '@testing-library/react';
+import { cleanup } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { LoadVisitsForComparison } from '../../../src/visits/visits-comparison/reducers/types';
 import { VisitsComparison } from '../../../src/visits/visits-comparison/VisitsComparison';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -38,27 +39,31 @@ describe('<VisitsComparison />', () => {
   it('disables filtering controls when loading', async () => {
     setUp({ loading: true });
 
-    expect(screen.getByRole('button', { name: 'Last 30 days' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'More' })).toBeDisabled();
+    await Promise.all([
+      expect.element(screen.getByRole('button', { name: 'Last 30 days' })).toBeDisabled(),
+      expect.element(screen.getByRole('button', { name: 'More' })).toBeDisabled(),
+    ]);
   });
 
-  it.each([[true], [false]])('does not display chart when loading', (loading) => {
+  it.each([[true], [false]])('does not display chart when loading', async (loading) => {
     setUp({ loading, visitsGroups: { foo: [visit] } });
 
     if (loading) {
-      expect(screen.queryByText('Visits over time')).not.toBeInTheDocument();
+      await expect.element(screen.getByText(/Visits over time/)).not.toBeInTheDocument();
     } else {
-      expect(screen.getByText('Visits over time')).toBeInTheDocument();
+      await expect.element(screen.getByText(/Visits over time/)).toBeInTheDocument();
     }
   });
 
   it.each([[{}], [{ foo: [] }], [{ foo: [], bar: [], baz: [] }]])(
     'shows fallback when all visits groups are empty',
-    (visitsGroups) => {
+    async (visitsGroups) => {
       setUp({ loading: false, visitsGroups });
 
-      expect(screen.queryByText('Visits over time')).not.toBeInTheDocument();
-      expect(screen.getByText('There are no visits matching current filter')).toBeInTheDocument();
+      await Promise.all([
+        expect.element(screen.getByText('Visits over time')).not.toBeInTheDocument(),
+        expect.element(screen.getByText('There are no visits matching current filter')).toBeInTheDocument(),
+      ]);
     },
   );
 

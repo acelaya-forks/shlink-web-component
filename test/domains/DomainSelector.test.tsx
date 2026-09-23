@@ -1,5 +1,5 @@
-import { page as screen } from 'vitest/browser';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { UserEvent } from 'vitest/browser';
 import { DomainSelector } from '../../src/domains/DomainSelector';
 import { checkAccessibility } from '../__helpers__/accessibility';

@@ -1,6 +1,6 @@
 import type { ShlinkApiClient } from '@shlinkio/shlink-js-sdk';
-import { page as screen } from 'vitest/browser';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { ShlinkDomain } from '../../../src/api-contract';
 import { EditDomainRedirectsModal } from '../../../src/domains/helpers/EditDomainRedirectsModal';
 import { checkAccessibility } from '../../__helpers__/accessibility';

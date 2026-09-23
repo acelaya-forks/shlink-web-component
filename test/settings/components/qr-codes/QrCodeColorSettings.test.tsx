@@ -1,9 +1,10 @@
-import { fireEvent, screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { QrCodeSettings } from '../../../../src/settings';
 import { defaultQrCodeSettings, SettingsProvider } from '../../../../src/settings';
 import { QrCodeColorSettings } from '../../../../src/settings/components/qr-codes/QrCodeColorSettings';
 import { checkAccessibility } from '../../../__helpers__/accessibility';
+import { setNativeInputValue } from '../../../__helpers__/input';
 import { renderWithEvents } from '../../../__helpers__/setUpTest';
 
 describe('<QrCodeColorSettings />', () => {
@@ -28,13 +29,13 @@ describe('<QrCodeColorSettings />', () => {
       expectedColor: '#ff0000',
       expectedBgColor: '#00ff00',
     },
-  ])('shows hints with expected colors', ({ settings, expectedColor, expectedBgColor }) => {
+  ])('shows hints with expected colors', async ({ settings, expectedColor, expectedBgColor }) => {
     setUp(settings);
 
-    expect(screen.getByTestId('color')).toHaveTextContent(expectedColor);
-    expect(screen.getByLabelText('Default color:')).toHaveValue(expectedColor);
-    expect(screen.getByTestId('bg-color')).toHaveTextContent(expectedBgColor);
-    expect(screen.getByLabelText('Default background color:')).toHaveValue(expectedBgColor);
+    await expect.element(screen.getByTestId('color')).toHaveTextContent(expectedColor);
+    await expect.element(screen.getByLabelText('Default color:')).toHaveValue(expectedColor);
+    await expect.element(screen.getByTestId('bg-color')).toHaveTextContent(expectedBgColor);
+    await expect.element(screen.getByLabelText('Default background color:')).toHaveValue(expectedBgColor);
   });
 
   it('can change colors via color pickers', () => {
@@ -46,14 +47,10 @@ describe('<QrCodeColorSettings />', () => {
 
     expect(onChange).not.toHaveBeenCalled();
 
-    fireEvent.change(screen.getByLabelText('Default color:'), {
-      target: { value: '#f0f0f0' },
-    });
+    setNativeInputValue(screen.getByLabelText('Default color:').element() as HTMLInputElement, '#f0f0f0');
     expect(onChange).toHaveBeenLastCalledWith({ ...settings, color: '#f0f0f0' });
 
-    fireEvent.change(screen.getByLabelText('Default background color:'), {
-      target: { value: '#654321' },
-    });
+    setNativeInputValue(screen.getByLabelText('Default background color:').element() as HTMLInputElement, '#654321');
     expect(onChange).toHaveBeenLastCalledWith({ ...settings, bgColor: '#654321' });
   });
 });

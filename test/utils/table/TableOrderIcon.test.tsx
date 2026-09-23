@@ -29,8 +29,8 @@ describe('<TableOrderIcon />', () => {
     [undefined, 'ml-1'],
     ['foo', 'foo'],
     ['bar', 'bar'],
-  ])('renders expected classname', (className, expectedClassName) => {
+  ])('renders expected classname', async (className, expectedClassName) => {
     const { container } = setUp('foo', 'ASC', className);
-    expect(container.firstChild).toHaveClass(expectedClassName);
+    await expect.element(container.firstChild as HTMLInputElement).toHaveClass(expectedClassName);
   });
 });

@@ -1,7 +1,8 @@
 import { Card } from '@shlinkio/shlink-frontend-kit';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { ShlinkShortUrl } from '../../../src/api-contract';
 import type { LinkSuffix, ShortUrlDetailLinkProps } from '../../../src/short-urls/helpers/ShortUrlDetailLink';
 import { ShortUrlDetailLink } from '../../../src/short-urls/helpers/ShortUrlDetailLink';
@@ -37,11 +38,11 @@ describe('<ShortUrlDetailLink />', () => {
     [true, undefined],
     [false, fromPartial<ShlinkShortUrl>({})],
     [false, fromPartial<ShlinkShortUrl>({})],
-  ])('only renders a plain span when short URL is not set or asLink is false', (asLink, shortUrl) => {
+  ])('only renders a plain span when short URL is not set or asLink is false', async (asLink, shortUrl) => {
     setUp({ asLink, shortUrl });
 
-    expect(screen.queryByRole('link')).not.toBeInTheDocument();
-    expect(screen.getByText('Something')).toBeInTheDocument();
+    await expect.element(screen.getByRole('link')).not.toBeInTheDocument();
+    await expect.element(screen.getByText('Something')).toBeInTheDocument();
   });
 
   it.each([
@@ -69,8 +70,8 @@ describe('<ShortUrlDetailLink />', () => {
       'edit' as LinkSuffix,
       '/server/3/short-code/def456/edit?domain=example.com',
     ],
-  ])('renders link with expected query', (routesPrefix, shortUrl, suffix, expectedLink) => {
+  ])('renders link with expected query', async (routesPrefix, shortUrl, suffix, expectedLink) => {
     setUp({ shortUrl, suffix }, routesPrefix);
-    expect(screen.getByRole('link')).toHaveProperty('href', expect.stringContaining(expectedLink));
+    await expect.element(screen.getByRole('link')).toHaveProperty('href', expect.stringContaining(expectedLink));
   });
 });

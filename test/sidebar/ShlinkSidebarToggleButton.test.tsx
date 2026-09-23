@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import { ShlinkSidebarToggleButton, ShlinkSidebarVisibilityProvider } from '../../src';
 import { useSidebarVisibility } from '../../src/sidebar/ShlinkSidebarVisibilityProvider';
 import { checkAccessibility } from '../__helpers__/accessibility';

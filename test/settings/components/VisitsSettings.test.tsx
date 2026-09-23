@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { Settings } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
 import { VisitsSettings } from '../../../src/settings/components/VisitsSettings';
@@ -17,13 +17,13 @@ describe('<VisitsSettings />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it('renders expected components', () => {
+  it('renders expected components', async () => {
     setUp();
 
-    expect(screen.getByRole('heading')).toHaveTextContent('Visits');
-    expect(screen.getByText('Default interval to load on visits sections:')).toBeInTheDocument();
-    expect(screen.getByText(/^Exclude bots wherever possible/)).toBeInTheDocument();
-    expect(screen.getByText('Compare visits with previous period.')).toBeInTheDocument();
+    await expect.element(screen.getByRole('heading')).toMatchTextContent('Visits');
+    await expect.element(screen.getByText('Default interval to load on visits sections:')).toBeInTheDocument();
+    await expect.element(screen.getByText(/^Exclude bots wherever possible/)).toBeInTheDocument();
+    await expect.element(screen.getByText('Compare visits with previous period.')).toBeInTheDocument();
   });
 
   it.each([
@@ -45,9 +45,9 @@ describe('<VisitsSettings />', () => {
       }),
       'Today',
     ],
-  ])('sets expected interval as active', (settings, expectedInterval) => {
+  ])('sets expected interval as active', async (settings, expectedInterval) => {
     setUp(settings);
-    expect(screen.getByRole('button')).toHaveTextContent(expectedInterval);
+    await expect.element(screen.getByRole('button')).toMatchTextContent(expectedInterval);
   });
 
   it('invokes setVisitsSettings when interval changes', async () => {
@@ -83,13 +83,13 @@ describe('<VisitsSettings />', () => {
       /The visits coming from potential bots will be excluded.$/,
       /The visits coming from potential bots will be included.$/,
     ],
-  ])('displays expected helper text for exclude bots control', (settings, expectedText, notExpectedText) => {
+  ])('displays expected helper text for exclude bots control', async (settings, expectedText, notExpectedText) => {
     setUp(settings);
 
     const helperText = screen.getByTestId('exclude-bots-help-text');
 
-    expect(helperText).toMatchTextContent(expectedText);
-    expect(helperText).not.toMatchTextContent(notExpectedText);
+    await expect.element(helperText).toMatchTextContent(expectedText);
+    await expect.element(helperText).not.toMatchTextContent(notExpectedText);
   });
 
   it('invokes setVisitsSettings when bot exclusion is toggled', async () => {
@@ -115,13 +115,13 @@ describe('<VisitsSettings />', () => {
       /When loading visits, previous period will be loaded by default.$/,
       /When loading visits, previous period won't be loaded by default.$/,
     ],
-  ])('displays expected helper text for prev interval control', (settings, expectedText, notExpectedText) => {
+  ])('displays expected helper text for prev interval control', async (settings, expectedText, notExpectedText) => {
     setUp(settings);
 
     const helperText = screen.getByTestId('compare-visits-help-text');
 
-    expect(helperText).toMatchTextContent(expectedText);
-    expect(helperText).not.toMatchTextContent(notExpectedText);
+    await expect.element(helperText).toMatchTextContent(expectedText);
+    await expect.element(helperText).not.toMatchTextContent(notExpectedText);
   });
 
   it('invokes setVisitsSettings when loading prev visits is toggled', async () => {

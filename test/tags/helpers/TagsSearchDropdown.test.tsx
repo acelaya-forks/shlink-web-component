@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import { TagsSearchDropdown } from '../../../src/tags/helpers/TagsSearchDropdown';
 import { checkAccessibility } from '../../__helpers__/accessibility';
 import { renderWithEvents } from '../../__helpers__/setUpTest';
@@ -33,9 +33,9 @@ describe('<TagsSearchDropdown />', () => {
     { selectedTags: ['foo'], expectedContent: 'Including 1 tag' },
     { selectedTags: ['foo', 'bar'], expectedContent: 'Including 2 tags' },
     { selectedTags: ['foo', 'bar', 'baz'], expectedContent: 'Including 3 tags' },
-  ])('displays expected button content based on selected tags', ({ selectedTags, expectedContent }) => {
+  ])('displays expected button content based on selected tags', async ({ selectedTags, expectedContent }) => {
     setUp(selectedTags);
-    expect(screen.getByRole('button')).toHaveTextContent(expectedContent);
+    await expect.element(screen.getByRole('button')).toHaveTextContent(expectedContent);
   });
 
   it.each([
@@ -47,10 +47,10 @@ describe('<TagsSearchDropdown />', () => {
     await setUpOpened(selectedTags);
 
     if (selectedTags.length === 0) {
-      expect(screen.queryByRole('list')).not.toBeInTheDocument();
+      await expect.element(screen.getByRole('list')).not.toBeInTheDocument();
     } else {
-      expect(screen.getByRole('list')).toBeInTheDocument();
-      expect(screen.getAllByRole('listitem')).toHaveLength(selectedTags.length);
+      await expect.element(screen.getByRole('list')).toBeInTheDocument();
+      expect(screen.getByRole('listitem').all()).toHaveLength(selectedTags.length);
     }
   });
 
@@ -83,9 +83,9 @@ describe('<TagsSearchDropdown />', () => {
   it.each(['bar', 'baz'])('can add new tags by selecting from search results', async (selectedOption) => {
     const { user } = await setUpOpened([]);
 
-    await user.type(screen.getByPlaceholderText('Search...'), 'ba');
+    await user.type(screen.getByPlaceholder('Search...'), 'ba');
     // Search results are displayed with a delay. Wait for them
-    await screen.findByRole('listbox');
+    await screen.getByRole('listbox').findElement();
 
     await user.click(screen.getByRole('option', { name: selectedOption }));
 
@@ -97,9 +97,9 @@ describe('<TagsSearchDropdown />', () => {
     async (searchTerm) => {
       const { user, container } = await setUpOpened([]);
 
-      await user.type(screen.getByPlaceholderText('Search...'), searchTerm);
+      await user.type(screen.getByPlaceholder('Search...'), searchTerm);
       // Search results are displayed with a delay. Wait for them
-      await screen.findByRole('listbox');
+      await screen.getByRole('listbox').findElement();
 
       const listener = vi.fn();
       container.addEventListener('keydown', listener);
@@ -115,7 +115,7 @@ describe('<TagsSearchDropdown />', () => {
     const listener = vi.fn();
     container.addEventListener('keydown', listener);
 
-    screen.getByPlaceholderText('Search...').focus();
+    screen.getByPlaceholder('Search...').element().focus();
     await user.keyboard('{Escape}');
 
     expect(listener).toHaveBeenCalled();

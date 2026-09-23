@@ -1,8 +1,8 @@
 import type { ShlinkShortUrl } from '@shlinkio/shlink-js-sdk/api-contract';
-import { screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { formatDistance, parseISO } from 'date-fns';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { ShortUrlVisits } from '../../src/visits/reducers/shortUrlVisits';
 import { ShortUrlVisitsHeader } from '../../src/visits/ShortUrlVisitsHeader';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -36,20 +36,24 @@ describe('<ShortUrlVisitsHeader />', () => {
     const { user } = setUp();
     const dateElement = screen.getByText(`${formatDistance(new Date(), parseISO(dateCreated))} ago`);
 
-    expect(dateElement).toBeInTheDocument();
-    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    await Promise.all([
+      expect.element(dateElement).toBeInTheDocument(),
+      expect.element(screen.getByRole('tooltip')).not.toBeInTheDocument(),
+    ]);
     await user.hover(dateElement);
-    await waitFor(() => expect(screen.getByRole('tooltip')).toHaveTextContent('2018-01-01 10:00'), { timeout: 2000 });
+    await expect.element(screen.getByRole('tooltip')).toMatchTextContent('2018-01-01 10:00');
   });
 
   it.each([
     [null, `Long URL: ${longUrl}`],
     [undefined, `Long URL: ${longUrl}`],
     ['My cool title', 'Title: My cool title'],
-  ])('shows the long URL and title', (title, expectedContent) => {
+  ])('shows the long URL and title', async (title, expectedContent) => {
     setUp(title);
 
-    expect(screen.getByTestId('long-url-container')).toHaveTextContent(expectedContent);
-    expect(screen.getByRole('link', { name: title ?? longUrl })).toHaveAttribute('href', longUrl);
+    await Promise.all([
+      expect.element(screen.getByTestId('long-url-container')).toMatchTextContent(expectedContent),
+      expect.element(screen.getByRole('link', { name: title ?? longUrl })).toHaveAttribute('href', longUrl),
+    ]);
   });
 });

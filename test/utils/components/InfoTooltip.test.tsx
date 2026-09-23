@@ -1,4 +1,4 @@
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import type { InfoTooltipProps } from '../../../src/utils/components/InfoTooltip';
 import { InfoTooltip } from '../../../src/utils/components/InfoTooltip';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -10,13 +10,13 @@ describe('<InfoTooltip />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it.each([[undefined], ['foo'], ['bar']])('renders expected className on span', (className) => {
+  it.each([[undefined], ['foo'], ['bar']])('renders expected className on span', async (className) => {
     const { container } = setUp({ className });
 
     if (className) {
-      expect(container.firstChild).toHaveClass(className);
+      await expect.element(container.firstChild as HTMLElement).toHaveClass(className);
     } else {
-      expect(container.firstChild).not.toHaveAttribute('class');
+      await expect.element(container.firstChild as HTMLElement).not.toHaveAttribute('class');
     }
   });
 
@@ -30,12 +30,11 @@ describe('<InfoTooltip />', () => {
     const anchor = screen.getByTestId('tooltip-anchor');
 
     await user.hover(anchor);
-    const tooltip = await screen.findByRole('tooltip');
+    const tooltip = await screen.getByRole('tooltip').findElement();
 
-    expect(tooltip).toHaveTextContent(expectedContent);
-
+    await expect.element(tooltip).toMatchTextContent(expectedContent);
     await user.unhover(anchor);
-    await waitForElementToBeRemoved(tooltip);
+    await expect.element(tooltip).not.toBeInTheDocument();
   });
 
   it.each([['right' as const], ['left' as const], ['top' as const], ['bottom' as const]])(
@@ -45,12 +44,12 @@ describe('<InfoTooltip />', () => {
       const anchor = screen.getByTestId('tooltip-anchor');
 
       await user.hover(anchor);
-      await waitFor(() => expect(screen.getByRole('tooltip')).toBeInTheDocument());
+      await expect.element(screen.getByRole('tooltip')).toBeInTheDocument();
 
-      expect(anchor).toHaveAttribute('data-placement', placement);
+      await expect.element(anchor).toHaveAttribute('data-placement', placement);
 
       await user.unhover(anchor);
-      await waitForElementToBeRemoved(screen.getByRole('tooltip'));
+      await expect.element(screen.getByRole('tooltip')).not.toBeInTheDocument();
     },
   );
 });

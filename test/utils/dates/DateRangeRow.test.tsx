@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import { endOfDay } from 'date-fns';
+import { page as screen } from 'vitest/browser';
 import { DateRangeRow } from '../../../src/utils/dates/DateRangeRow';
 import { checkAccessibility } from '../../__helpers__/accessibility';
 import { setNativeInputValue } from '../../__helpers__/input';
@@ -17,7 +17,7 @@ describe('<DateRangeRow />', () => {
     setUp();
 
     expect(onStartDateChange).not.toHaveBeenCalled();
-    setNativeInputValue(screen.getByLabelText('Since:'), '2020-05-05');
+    setNativeInputValue(screen.getByLabelText('Since:').element() as HTMLInputElement, '2020-05-05');
     expect(onStartDateChange).toHaveBeenCalledWith(new Date('2020-05-05 00:00:00'));
   });
 
@@ -25,7 +25,7 @@ describe('<DateRangeRow />', () => {
     setUp();
 
     expect(onEndDateChange).not.toHaveBeenCalled();
-    setNativeInputValue(screen.getByLabelText('Until:'), '2022-05-05');
+    setNativeInputValue(screen.getByLabelText('Until:').element() as HTMLInputElement, '2022-05-05');
     expect(onEndDateChange).toHaveBeenCalledWith(endOfDay(new Date('2022-05-05 23:59:59')));
   });
 });

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import type { UserEvent } from 'vitest/browser';
 import type { ShlinkOrphanVisitType } from '../../../src/api-contract';
 import type { DropdownOptions } from '../../../src/visits/helpers/VisitsDropdown';
@@ -37,9 +37,9 @@ describe('<VisitsDropdown />', () => {
     ],
   ])('passes a11y checks', (setUp) => checkAccessibility(setUp()));
 
-  it('has expected text', () => {
+  it('has expected text', async () => {
     setUp();
-    expect(screen.getByRole('button', { name: 'More' })).toBeInTheDocument();
+    await expect.element(screen.getByRole('button', { name: 'More' })).toBeInTheDocument();
   });
 
   it.each([
@@ -54,8 +54,8 @@ describe('<VisitsDropdown />', () => {
 
       await openDropdown(user);
 
-      expect(screen.getAllByRole('menuitem')).toHaveLength(expectedItemsAmount);
-      expect(screen.getAllByRole('heading', { hidden: true })).toHaveLength(expectedHeadersAmount);
+      expect(screen.getByRole('menuitem').all()).toHaveLength(expectedItemsAmount);
+      expect(screen.getByRole('heading', { includeHidden: true }).all()).toHaveLength(expectedHeadersAmount);
     },
   );
 
@@ -69,7 +69,7 @@ describe('<VisitsDropdown />', () => {
 
     await openDropdown(user);
 
-    const items = screen.getAllByRole('menuitem');
+    const items = screen.getByRole('menuitem').elements();
     const activeItem = items.filter((item) => item.dataset.selected === 'true');
 
     expect.assertions(expectedActiveItems + 1);

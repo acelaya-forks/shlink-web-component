@@ -1,5 +1,6 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { ShortUrlsOrderableFields } from '../../src/short-urls/data';
 import { SHORT_URLS_ORDERABLE_FIELDS } from '../../src/short-urls/data';
 import type { ShortUrlsList } from '../../src/short-urls/reducers/shortUrlsList';
@@ -15,32 +16,33 @@ describe('<ShortUrlsTable />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it('should render inner table by default', () => {
+  it('should render inner table by default', async () => {
     setUp();
-    expect(screen.getByRole('table')).toBeInTheDocument();
+    await expect.element(screen.getByRole('table')).toBeInTheDocument();
   });
 
   it('should render row groups by default', () => {
     setUp();
-    expect(screen.getAllByRole('rowgroup')).toHaveLength(1);
+    expect(screen.getByRole('rowgroup').all()).toHaveLength(1);
   });
 
   it('should render expected amount of table header cells', () => {
     setUp();
-    expect(screen.getAllByRole('columnheader', { hidden: true })).toHaveLength(6);
+    expect(screen.getByRole('columnheader', { includeHidden: true }).all()).toHaveLength(6);
   });
 
-  it('should render table header cells without "order by" icon by default', () => {
+  it('should render table header cells without "order by" icon by default', async () => {
     setUp();
-    expect(screen.queryByRole('img', { hidden: true })).not.toBeInTheDocument();
+    await expect.element(screen.getByRole('img', { includeHidden: true })).not.toBeInTheDocument();
   });
 
-  it('should render table header cells with conditional order by icon', () => {
+  it('should render table header cells with conditional order by icon', async () => {
     setUp();
 
     const getThElementForSortableField = (orderableField: string) =>
       screen
-        .getAllByRole('columnheader', { hidden: true })
+        .getByRole('columnheader', { includeHidden: true })
+        .elements()
         .find(({ innerHTML }) =>
           innerHTML.includes(SHORT_URLS_ORDERABLE_FIELDS[orderableField as ShortUrlsOrderableFields]),
         );
@@ -63,7 +65,7 @@ describe('<ShortUrlsTable />', () => {
   it('should render composed title column', () => {
     setUp();
 
-    const { innerHTML } = screen.getAllByRole('columnheader', { hidden: true })[2];
+    const { innerHTML } = screen.getByRole('columnheader', { includeHidden: true }).elements()[2];
 
     expect(innerHTML).toContain('Title');
     expect(innerHTML).toContain('Long URL');

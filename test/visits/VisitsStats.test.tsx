@@ -1,7 +1,7 @@
-import { screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { ShlinkVisit } from '../../src/api-contract';
 import type { Domain } from '../../src/domains/data';
 import { DEFAULT_DOMAIN } from '../../src/domains/data';
@@ -68,37 +68,41 @@ describe('<VisitsStats />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it('renders a preloader when visits are loading', () => {
+  it('renders a preloader when visits are loading', async () => {
     setUp({
       visitsInfo: { status: 'loading', progress: null },
     });
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-    expect(screen.queryByText(/^This is going to take a while/)).not.toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByText('Loading...')).toBeInTheDocument(),
+      expect.element(screen.getByText(/^This is going to take a while/)).not.toBeInTheDocument(),
+    ]);
   });
 
-  it('renders a warning and progress bar when loading large amounts of visits', () => {
+  it('renders a warning and progress bar when loading large amounts of visits', async () => {
     setUp({
       visitsInfo: { status: 'loading', progress: 25 },
     });
 
-    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-    expect(screen.getByText(/^This is going to take a while/)).toBeInTheDocument();
-    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25');
+    await Promise.all([
+      expect.element(screen.getByText('Loading...')).not.toBeInTheDocument(),
+      expect.element(screen.getByText(/^This is going to take a while/)).toBeInTheDocument(),
+      expect.element(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25'),
+    ]);
   });
 
-  it('renders an error message when visits could not be loaded', () => {
+  it('renders an error message when visits could not be loaded', async () => {
     setUp({
       visitsInfo: { status: 'error', error: fromPartial({}) },
     });
-    expect(screen.getByText('An error occurred while loading visits :(')).toBeInTheDocument();
+    await expect.element(screen.getByText('An error occurred while loading visits :(')).toBeInTheDocument();
   });
 
-  it('renders a message when visits are loaded but the list is empty', () => {
+  it('renders a message when visits are loaded but the list is empty', async () => {
     setUp({
       visitsInfo: { visits: [] },
     });
-    expect(screen.getByText('There are no visits matching current filter')).toBeInTheDocument();
+    await expect.element(screen.getByText('There are no visits matching current filter')).toBeInTheDocument();
   });
 
   it.each([
@@ -107,25 +111,30 @@ describe('<VisitsStats />', () => {
     ['/by-location', ['Countries', 'Cities']],
     ['/list', ['Visits list']],
     ['/options', ['Danger zone']],
-  ])('renders expected cards per sub-route', (activeRoute, expectedCards) => {
+  ])('renders expected cards per sub-route', async (activeRoute, expectedCards) => {
     setUp({ visitsInfo: { visits }, activeRoute, withDeletion: true });
 
-    expectedCards.forEach((cardTitle) => {
-      expect(screen.getByText(cardTitle)).toBeInTheDocument();
-    });
+    await Promise.all(
+      expectedCards.map((cardTitle) => expect.element(screen.getByText(new RegExp(cardTitle))).toBeInTheDocument()),
+    );
   });
 
-  it('renders danger zone in options sub-route', () => {
+  it('renders danger zone in options sub-route', async () => {
     setUp({ visitsInfo: { visits }, activeRoute: '/options', withDeletion: true });
 
-    expect(screen.getByText('Danger zone')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Delete visits' })).toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByText('Danger zone')).toBeInTheDocument(),
+      expect.element(screen.getByRole('button', { name: 'Delete visits' })).toBeInTheDocument(),
+    ]);
   });
 
   it('shows the map button on cities chart header', () => {
     setUp({ visitsInfo: { visits }, activeRoute: '/by-location' });
     expect(
-      screen.getAllByRole('img', { hidden: true }).some((icon) => icon.classList.contains('fa-map-location-dot')),
+      screen
+        .getByRole('img', { includeHidden: true })
+        .elements()
+        .some((icon) => icon.classList.contains('fa-map-location-dot')),
     ).toEqual(true);
   });
 
@@ -140,14 +149,14 @@ describe('<VisitsStats />', () => {
     { activeRoute: '/list', prevVisits: [], shouldShowMessage: false },
   ])(
     'displays message when trying to load prev visits and prev interval cannot be calculated',
-    ({ activeRoute, prevVisits, shouldShowMessage }) => {
+    async ({ activeRoute, prevVisits, shouldShowMessage }) => {
       const settings = fromPartial<Settings>({ visits: { loadPrevInterval: true } });
       setUp({ visitsInfo: { visits, prevVisits }, activeRoute, settings });
 
       if (shouldShowMessage) {
-        expect(screen.getByText(/^Could not calculate previous period/)).toBeInTheDocument();
+        await expect.element(screen.getByText(/^Could not calculate previous period/)).toBeInTheDocument();
       } else {
-        expect(screen.queryByText(/^Could not calculate previous period/)).not.toBeInTheDocument();
+        await expect.element(screen.getByText(/^Could not calculate previous period/)).not.toBeInTheDocument();
       }
     },
   );
@@ -170,12 +179,12 @@ describe('<VisitsStats />', () => {
     expect(history.location.search).toEqual('');
 
     await user.click(screen.getByRole('button', { name: /More/ }));
-    await waitFor(() => screen.getByRole('menu'));
+    await screen.getByRole('menu').findElement();
     await user.click(screen.getByRole('menuitem', { name: 'Exclude potential bots' }));
     expectSearchContains(['excludeBots=true']);
 
     await user.click(screen.getByRole('button', { name: /Last 30 days/ }));
-    await waitFor(() => screen.getByRole('menu'));
+    await screen.getByRole('menu').findElement();
     await user.click(screen.getByRole('menuitem', { name: /Last 180 days/ }));
     expectSearchContains(['startDate', 'endDate']);
   });
@@ -187,13 +196,13 @@ describe('<VisitsStats />', () => {
     { domains: [], filterByDomainSupported: true },
   ])(
     'shows domains filtering control when domains are provided and the feature is supported',
-    ({ domains, filterByDomainSupported }) => {
+    async ({ domains, filterByDomainSupported }) => {
       setUp({ domains, filterByDomainSupported });
 
       if (domains && filterByDomainSupported) {
-        expect(screen.getByRole('button', { name: 'All domains' })).toBeInTheDocument();
+        await expect.element(screen.getByRole('button', { name: 'All domains' })).toBeInTheDocument();
       } else {
-        expect(screen.queryByRole('button', { name: 'All domains' })).not.toBeInTheDocument();
+        await expect.element(screen.getByRole('button', { name: 'All domains' })).not.toBeInTheDocument();
       }
     },
   );
@@ -208,7 +217,7 @@ describe('<VisitsStats />', () => {
     });
 
     await user.click(screen.getByRole('button', { name: 'All domains' }));
-    await user.click(await screen.findByRole('menuitem', { name: selectedDomain }));
+    await user.click(screen.getByRole('menuitem', { name: selectedDomain }));
 
     expect(history.location.search).toContain(`domain=${expectedFilter}`);
   });
@@ -233,6 +242,6 @@ describe('<VisitsStats />', () => {
     });
 
     expect(getVisitsMock).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ loadPrevInterval }));
-    expect(screen.getByTestId('line-chart-container')).toMatchSnapshot();
+    expect(screen.getByTestId('line-chart-container').element()).toMatchSnapshot();
   });
 });

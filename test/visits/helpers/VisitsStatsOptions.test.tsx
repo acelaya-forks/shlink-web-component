@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import { VisitsStatsOptions } from '../../../src/visits/helpers/VisitsStatsOptions';
 import { checkAccessibility } from '../../__helpers__/accessibility';
 import { renderWithEvents } from '../../__helpers__/setUpTest';
@@ -31,6 +31,6 @@ describe('<VisitsStatsOptions />', () => {
     const { user } = setUp(true);
     await user.click(screen.getByRole('button', { name: 'Delete visits' }));
 
-    expect(screen.getByRole('button', { name: 'Deleting...' })).toHaveAttribute('disabled');
+    await expect.element(screen.getByRole('button', { name: 'Deleting...' })).toHaveAttribute('disabled');
   });
 });

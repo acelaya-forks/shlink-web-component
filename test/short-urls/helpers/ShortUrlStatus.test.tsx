@@ -54,8 +54,8 @@ describe('<ShortUrlStatus />', () => {
       fromPartial<ShlinkVisitsSummary>({ total: 1 }),
       'This short URL can be visited normally',
     ],
-  ])('shows expected tooltip', (meta, visitsSummary, expectedTooltip) => {
+  ])('shows expected tooltip', async (meta, visitsSummary, expectedTooltip) => {
     const { container } = setUp(fromPartial({ meta, visitsSummary }));
-    expect(container.firstChild).toHaveAttribute('title', expectedTooltip);
+    await expect.element(container.firstChild as HTMLElement).toHaveAttribute('title', expectedTooltip);
   });
 });

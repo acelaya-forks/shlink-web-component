@@ -1,9 +1,9 @@
 import type { ShlinkApiClient } from '@shlinkio/shlink-js-sdk';
 import type { ShlinkShortUrlsList } from '@shlinkio/shlink-js-sdk/api-contract';
-import { screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import { ContainerProvider } from '../../src/container/context';
 import type { Settings } from '../../src/settings';
 import { SettingsProvider } from '../../src/settings';
@@ -62,7 +62,7 @@ describe('<ShortUrlsList />', () => {
     );
 
     // Wait for loading to finish, when the paginator will show
-    await waitFor(() => expect(screen.getByTestId('short-urls-paginator')).toBeInTheDocument());
+    await expect.element(screen.getByTestId('short-urls-paginator')).toBeInTheDocument();
 
     return { history, ...renderResult };
   };
@@ -72,20 +72,22 @@ describe('<ShortUrlsList />', () => {
   it('passes current query to paginator', async () => {
     await setUp();
 
-    const paginatorLinks = screen.getByTestId('paginator').querySelectorAll('a');
+    const paginatorLinks = [...screen.getByTestId('paginator').element().querySelectorAll('a')];
 
     expect(paginatorLinks.length).toBeGreaterThan(0);
-    paginatorLinks.forEach((link) =>
-      expect(link).toHaveAttribute('href', expect.stringContaining('?tags=test%20tag&search=example.com')),
+    await Promise.all(
+      paginatorLinks.map((link) =>
+        expect.element(link).toHaveAttribute('href', expect.stringContaining('?tags=test%20tag&search=example.com')),
+      ),
     );
   });
 
   it('hides paginator while loading', async () => {
     const setUpPromise = setUp();
 
-    expect(screen.queryByTestId('short-urls-paginator')).not.toBeInTheDocument();
+    await expect.element(screen.getByTestId('short-urls-paginator')).not.toBeInTheDocument();
     await setUpPromise;
-    expect(screen.getByTestId('short-urls-paginator')).toBeInTheDocument();
+    await expect.element(screen.getByTestId('short-urls-paginator')).toBeInTheDocument();
   });
 
   it('gets list refreshed every time a tag is clicked', async () => {

@@ -1,6 +1,6 @@
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { ShlinkShortUrl } from '../../../src/api-contract';
 import type { ShortUrlsListSettings } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
@@ -59,7 +59,7 @@ describe('<ShortUrlsRowMenu />', () => {
     [{ itemsToCompare: [] }, 6],
   ])('renders correct amount of menu items', async (visitsComparison, expectedMenuItems) => {
     await setUpAndOpen({ visitsComparison });
-    expect(screen.getAllByRole('menuitem')).toHaveLength(expectedMenuItems);
+    expect(screen.getByRole('menuitem').all()).toHaveLength(expectedMenuItems);
   });
 
   it.each([
@@ -75,9 +75,9 @@ describe('<ShortUrlsRowMenu />', () => {
     const button = screen.getByRole('menuitem', { name: 'Compare visits' });
 
     if (canAddItem) {
-      expect(button).not.toHaveAttribute('disabled');
+      await expect.element(button).not.toHaveAttribute('disabled');
     } else {
-      expect(button).toHaveAttribute('disabled');
+      await expect.element(button).toHaveAttribute('disabled');
     }
   });
 

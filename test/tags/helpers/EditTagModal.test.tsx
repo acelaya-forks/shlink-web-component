@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import { ContainerProvider } from '../../../src/container/context';
 import { EditTagModal } from '../../../src/tags/helpers/EditTagModal';
 import type { TagEdition } from '../../../src/tags/reducers/tagEdit';
@@ -42,24 +42,24 @@ describe('<EditTagModal />', () => {
   it.each([
     [true, 'Saving...'],
     [false, 'Save'],
-  ])('renders submit button in expected state', (editing, name) => {
+  ])('renders submit button in expected state', async (editing, name) => {
     setUp({ status: editing ? 'editing' : 'idle' });
-    expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    await expect.element(screen.getByRole('button', { name })).toBeInTheDocument();
   });
 
-  it('displays error result in case of error', () => {
+  it('displays error result in case of error', async () => {
     setUp({ status: 'error', error: fromPartial({}) });
-    expect(screen.getByText('Something went wrong while editing the tag :(')).toBeInTheDocument();
+    await expect.element(screen.getByText('Something went wrong while editing the tag :(')).toBeInTheDocument();
   });
 
   it('updates tag value when text changes', async () => {
     const { user } = setUp();
-    const getInput = () => screen.getByPlaceholderText('Tag');
+    const getInput = () => screen.getByPlaceholder('Tag');
 
-    expect(getInput()).toHaveValue('foo');
+    await expect.element(getInput()).toHaveValue('foo');
     await user.clear(getInput());
     await user.type(getInput(), 'bar');
-    expect(getInput()).toHaveValue('bar');
+    await expect.element(getInput()).toHaveValue('bar');
   });
 
   it('invokes all functions on form submit', async () => {

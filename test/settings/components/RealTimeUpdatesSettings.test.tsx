@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { RealTimeUpdatesSettings as RealTimeUpdatesSettingsOptions } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
 import { RealTimeUpdatesSettings } from '../../../src/settings/components/RealTimeUpdatesSettings';
@@ -21,26 +21,40 @@ describe('<RealTimeUpdatesSettings />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it('renders enabled real time updates as expected', () => {
+  it('renders enabled real time updates as expected', async () => {
     setUp({ enabled: true });
 
-    expect(screen.getByLabelText(/^Enable or disable real-time updates./)).toBeChecked();
-    expect(screen.getByText(/^Real-time updates are currently being/)).toHaveTextContent('processed');
-    expect(screen.getByText(/^Real-time updates are currently being/)).not.toHaveTextContent('ignored');
-    expect(screen.getByText('Real-time updates frequency (in minutes):')).not.toHaveClass('dark:text-gray-400');
-    expect(screen.getByLabelText('Real-time updates frequency (in minutes):')).not.toHaveAttribute('disabled');
-    expect(screen.getByText('Updates will be reflected in the UI as soon as they happen.')).toBeInTheDocument();
+    await expect.element(screen.getByLabelText(/^Enable or disable real-time updates./)).toBeChecked();
+    await expect.element(screen.getByText(/^Real-time updates are currently being/)).toMatchTextContent('processed');
+    await expect.element(screen.getByText(/^Real-time updates are currently being/)).not.toMatchTextContent('ignored');
+    await expect
+      .element(screen.getByText('Real-time updates frequency (in minutes):'))
+      .not.toHaveClass('dark:text-gray-400');
+    await expect
+      .element(screen.getByLabelText('Real-time updates frequency (in minutes):'))
+      .not.toHaveAttribute('disabled');
+    await expect
+      .element(screen.getByText('Updates will be reflected in the UI as soon as they happen.'))
+      .toBeInTheDocument();
   });
 
-  it('renders disabled real time updates as expected', () => {
+  it('renders disabled real time updates as expected', async () => {
     setUp({ enabled: false });
 
-    expect(screen.getByLabelText(/^Enable or disable real-time updates./)).not.toBeChecked();
-    expect(screen.getByText(/^Real-time updates are currently being/)).not.toHaveTextContent('processed');
-    expect(screen.getByText(/^Real-time updates are currently being/)).toHaveTextContent('ignored');
-    expect(screen.getByText('Real-time updates frequency (in minutes):')).toHaveClass('dark:text-gray-400');
-    expect(screen.getByLabelText('Real-time updates frequency (in minutes):')).toHaveAttribute('disabled');
-    expect(screen.queryByText('Updates will be reflected in the UI as soon as they happen.')).not.toBeInTheDocument();
+    await expect.element(screen.getByLabelText(/^Enable or disable real-time updates./)).not.toBeChecked();
+    await expect
+      .element(screen.getByText(/^Real-time updates are currently being/))
+      .not.toMatchTextContent('processed');
+    await expect.element(screen.getByText(/^Real-time updates are currently being/)).toMatchTextContent('ignored');
+    await expect
+      .element(screen.getByText('Real-time updates frequency (in minutes):'))
+      .toHaveClass('dark:text-gray-400');
+    await expect
+      .element(screen.getByLabelText('Real-time updates frequency (in minutes):'))
+      .toHaveAttribute('disabled');
+    await expect
+      .element(screen.getByText('Updates will be reflected in the UI as soon as they happen.'))
+      .not.toBeInTheDocument();
   });
 
   it.each([
@@ -48,21 +62,25 @@ describe('<RealTimeUpdatesSettings />', () => {
     [2, 'minutes'],
     [10, 'minutes'],
     [100, 'minutes'],
-  ])('shows expected children when interval is greater than 0', (interval, minutesWord) => {
+  ])('shows expected children when interval is greater than 0', async (interval, minutesWord) => {
     setUp({ enabled: true, interval });
 
-    expect(screen.getByText(/^Updates will be reflected in the UI every/)).toHaveTextContent(
-      `${interval} ${minutesWord}`,
-    );
-    expect(screen.getByLabelText('Real-time updates frequency (in minutes):')).toHaveValue(interval);
-    expect(screen.queryByText('Updates will be reflected in the UI as soon as they happen.')).not.toBeInTheDocument();
+    await expect
+      .element(screen.getByText(/^Updates will be reflected in the UI every/))
+      .toMatchTextContent(`${interval} ${minutesWord}`);
+    await expect.element(screen.getByLabelText('Real-time updates frequency (in minutes):')).toHaveValue(interval);
+    await expect
+      .element(screen.getByText('Updates will be reflected in the UI as soon as they happen.'))
+      .not.toBeInTheDocument();
   });
 
-  it.each([[undefined], [0]])('shows expected children when interval is 0 or undefined', (interval) => {
+  it.each([[undefined], [0]])('shows expected children when interval is 0 or undefined', async (interval) => {
     setUp({ enabled: true, interval });
 
-    expect(screen.queryByText(/^Updates will be reflected in the UI every/)).not.toBeInTheDocument();
-    expect(screen.getByText('Updates will be reflected in the UI as soon as they happen.')).toBeInTheDocument();
+    await expect.element(screen.getByText(/^Updates will be reflected in the UI every/)).not.toBeInTheDocument();
+    await expect
+      .element(screen.getByText('Updates will be reflected in the UI as soon as they happen.'))
+      .toBeInTheDocument();
   });
 
   it('updates real time updates when typing on input', async () => {

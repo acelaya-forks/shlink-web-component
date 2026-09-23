@@ -1,7 +1,8 @@
 import { ELLIPSIS } from '@shlinkio/shlink-frontend-kit';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { ShlinkPaginator } from '../../src/api-contract';
 import { Paginator } from '../../src/short-urls/Paginator';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -27,9 +28,9 @@ describe('<Paginator />', () => {
 
   it.each([[undefined], [buildPaginator()], [buildPaginator(0)], [buildPaginator(1)]])(
     'renders an empty gap if the number of pages is below 2',
-    (paginator) => {
+    async (paginator) => {
       setUp(paginator);
-      expect(screen.getByTestId('empty-gap')).toBeInTheDocument();
+      await expect.element(screen.getByTestId('empty-gap')).toBeInTheDocument();
     },
   );
 
@@ -45,22 +46,21 @@ describe('<Paginator />', () => {
     ({ paginator, expectedPages, expectedEllipsis }) => {
       setUp(paginator);
 
-      const links = screen.getAllByRole('link');
-      const ellipsis = screen.queryAllByText(ELLIPSIS);
-
-      expect(links).toHaveLength(expectedPages);
-      expect(ellipsis).toHaveLength(expectedEllipsis);
+      expect(screen.getByRole('link').all()).toHaveLength(expectedPages);
+      expect(screen.getByText(ELLIPSIS).all()).toHaveLength(expectedEllipsis);
     },
   );
 
-  it('appends query string to all pages', () => {
+  it('appends query string to all pages', async () => {
     const paginator = buildPaginator(3);
     const currentQueryString = '?foo=bar';
 
     setUp(paginator, currentQueryString);
-    const links = screen.getAllByRole('link');
+    const links = screen.getByRole('link').all();
 
     expect(links).toHaveLength(4);
-    links.forEach((link) => expect(link).toHaveAttribute('href', expect.stringContaining(currentQueryString)));
+    await Promise.all(
+      links.map((link) => expect.element(link).toHaveAttribute('href', expect.stringContaining(currentQueryString))),
+    );
   });
 });

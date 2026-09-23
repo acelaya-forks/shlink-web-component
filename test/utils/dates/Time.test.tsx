@@ -12,15 +12,17 @@ describe('<Time />', () => {
   it.each([
     [{ date: parseDate('2020-05-05', 'yyyy-MM-dd') }, '1588636800000', '2020-05-05 00:00'],
     [{ date: parseDate('2021-03-20', 'yyyy-MM-dd'), format: 'dd/MM/yyyy' }, '1616198400000', '20/03/2021'],
-  ])('includes expected dateTime and format', (props, expectedDateTime, expectedFormatted) => {
+  ])('includes expected dateTime and format', async (props, expectedDateTime, expectedFormatted) => {
     const { container } = setUp(props);
 
-    expect(container.firstChild).toHaveAttribute('datetime', expectedDateTime);
-    expect(container.firstChild).toHaveTextContent(expectedFormatted);
+    await Promise.all([
+      expect.element(container.firstChild as HTMLInputElement).toHaveAttribute('datetime', expectedDateTime),
+      expect.element(container.firstChild as HTMLInputElement).toHaveTextContent(expectedFormatted),
+    ]);
   });
 
-  it('renders relative times when requested', () => {
+  it('renders relative times when requested', async () => {
     const { container } = setUp({ relative: true });
-    expect(container.firstChild).toHaveTextContent(' ago');
+    await expect.element(container.firstChild as HTMLInputElement).toMatchTextContent(' ago');
   });
 });

@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { ShlinkVisit } from '../../src/api-contract';
 import { VisitsHeader } from '../../src/visits/VisitsHeader';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -17,13 +18,13 @@ describe('<VisitsHeader />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it('shows the amount of visits', () => {
+  it('shows the amount of visits', async () => {
     setUp();
-    expect(screen.getByTestId('badge')).toHaveTextContent(`Visits: ${visits.length}`);
+    await expect.element(screen.getByTestId('badge')).toHaveTextContent(`Visits: ${visits.length}`);
   });
 
   it('shows the title in two places', () => {
     setUp();
-    expect(screen.getAllByText(title)).toHaveLength(2);
+    expect(screen.getByText(title).all()).toHaveLength(2);
   });
 });

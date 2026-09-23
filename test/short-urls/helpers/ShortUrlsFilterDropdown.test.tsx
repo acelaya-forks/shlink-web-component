@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import type { UserEvent } from 'vitest/browser';
 import type { ShortUrlsFilter } from '../../../src/short-urls/helpers/ShortUrlsFilterDropdown';
 import { ShortUrlsFilterDropdown } from '../../../src/short-urls/helpers/ShortUrlsFilterDropdown';
@@ -15,7 +15,7 @@ describe('<ShortUrlsFilterDropdown />', () => {
     const { user, ...rest } = setUp(selected);
 
     await openMenu(user);
-    await waitFor(() => expect(screen.getByRole('menu')).toBeInTheDocument());
+    await expect.element(screen.getByRole('menu')).toBeInTheDocument();
 
     return { user, ...rest };
   };
@@ -24,7 +24,7 @@ describe('<ShortUrlsFilterDropdown />', () => {
 
   it('displays proper amount of menu items', async () => {
     await setUpOpened();
-    expect(screen.getAllByRole('menuitem')).toHaveLength(4);
+    expect(screen.getByRole('menuitem').all()).toHaveLength(4);
   });
 
   it.each([

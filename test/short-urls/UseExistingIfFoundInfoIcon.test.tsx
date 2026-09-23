@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import type { UserEvent } from 'vitest/browser';
 import { UseExistingIfFoundInfoIcon } from '../../src/short-urls/UseExistingIfFoundInfoIcon';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -23,8 +23,8 @@ describe('<UseExistingIfFoundInfoIcon />', () => {
   it('shows modal when icon is clicked', async () => {
     const { user } = setUp();
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await expect.element(screen.getByRole('dialog')).not.toBeInTheDocument();
     await openModal(user);
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    await expect.element(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });

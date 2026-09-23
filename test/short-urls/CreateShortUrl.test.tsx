@@ -1,6 +1,6 @@
-import { screen } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import { SettingsProvider } from '../../src/settings';
 import { CreateShortUrl } from '../../src/short-urls/CreateShortUrl';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -24,14 +24,14 @@ describe('<CreateShortUrl />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it.each([undefined, 'https://example.com'])('renders initial long URL', (longUrl) => {
+  it.each([undefined, 'https://example.com'])('renders initial long URL', async (longUrl) => {
     setUp(longUrl);
-    const input = screen.getByPlaceholderText('URL to be shortened');
+    const input = screen.getByPlaceholder('URL to be shortened');
 
     if (longUrl) {
-      expect(input).toHaveValue(longUrl);
+      await expect.element(input).toHaveValue(longUrl);
     } else {
-      expect(input).not.toHaveValue();
+      await expect.element(input).not.toHaveValue();
     }
   });
 });

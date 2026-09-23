@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { TagFilteringMode } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
 import { TagsSelector } from '../../../src/tags/helpers/TagsSelector';
@@ -34,9 +34,9 @@ describe('<TagsSelector />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it('has an input for tags', () => {
+  it('has an input for tags', async () => {
     setUp();
-    expect(screen.getByPlaceholderText('Add tags to the URL')).toBeInTheDocument();
+    await expect.element(screen.getByPlaceholder('Add tags to the URL')).toBeInTheDocument();
   });
 
   it.each([
@@ -47,8 +47,8 @@ describe('<TagsSelector />', () => {
     const { user } = setUp();
 
     expect(onChange).not.toHaveBeenCalled();
-    await user.type(screen.getByPlaceholderText('Add tags to the URL'), newTag);
-    await user.type(screen.getByPlaceholderText('Add tags to the URL'), '{Enter}');
+    await user.type(screen.getByPlaceholder('Add tags to the URL'), newTag);
+    await user.type(screen.getByPlaceholder('Add tags to the URL'), '{Enter}');
     expect(onChange).toHaveBeenCalledWith(expectedTags);
   });
 });

@@ -1,6 +1,6 @@
-import { page as screen } from 'vitest/browser';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { ProblemDetailsError } from '../../src/api-contract';
 import type { Domain } from '../../src/domains/data';
 import { ManageDomains } from '../../src/domains/ManageDomains';
@@ -71,10 +71,12 @@ describe('<ManageDomains />', () => {
     await setUp();
 
     expect(
-      screen.getByRole('columnheader', {
-        // Tests are run in a mobile resolution, where table headers are hidden
-        includeHidden: true,
-      }).all(),
+      screen
+        .getByRole('columnheader', {
+          // Tests are run in a mobile resolution, where table headers are hidden
+          includeHidden: true,
+        })
+        .all(),
     ).toHaveLength(7);
     await expect.element(screen.getByText('No results found')).toBeInTheDocument();
   });

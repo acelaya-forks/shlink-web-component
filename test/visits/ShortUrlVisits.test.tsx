@@ -1,10 +1,10 @@
 import { Card } from '@shlinkio/shlink-frontend-kit';
 import type { ShlinkShortUrl, ShlinkVisitsList } from '@shlinkio/shlink-js-sdk/api-contract';
-import { screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { formatISO } from 'date-fns';
 import { MemoryRouter } from 'react-router';
 import { now } from 'tinybench';
+import { page as screen } from 'vitest/browser';
 import { SettingsProvider } from '../../src/settings';
 import { ShortUrlVisits } from '../../src/visits/ShortUrlVisits';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -42,7 +42,7 @@ describe('<ShortUrlVisits />', () => {
     );
 
     // Wait for loading to finish
-    await waitFor(() => expect(screen.queryByText('Loading...')).not.toBeInTheDocument());
+    await expect.element(screen.getByText('Loading...')).not.toBeInTheDocument();
 
     return renderResult;
   };
@@ -51,7 +51,8 @@ describe('<ShortUrlVisits />', () => {
 
   it('wraps visits stats and header', async () => {
     await setUp();
-    expect(screen.getAllByRole('heading')[0]).toHaveTextContent('Visits for');
+
+    await expect.element(screen.getByRole('heading').first()).toMatchTextContent('Visits for');
     expect(getShortUrlVisits).toHaveBeenCalled();
   });
 

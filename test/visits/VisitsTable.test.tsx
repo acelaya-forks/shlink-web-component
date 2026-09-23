@@ -1,5 +1,5 @@
-import { screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { UserEvent } from 'vitest/browser';
 import type { VisitsListSettings } from '../../src/settings';
 import { defaultVisitsListColumns, SettingsProvider } from '../../src/settings';
@@ -33,30 +33,33 @@ describe('<VisitsTable />', () => {
     });
   const setUpWithSettings = (visitsList: VisitsListSettings) => setUpFactory({ visitsList });
 
-  const getFirstColumnValue = () => screen.getAllByRole('row')[2]?.querySelectorAll('td')[3]?.textContent;
-  const clickColumn = async (user: UserEvent, index: number) => user.click(screen.getAllByRole('columnheader')[index]);
+  const getFirstColumnValue = () => screen.getByRole('row').elements()[2]?.querySelectorAll('td')[3]?.textContent;
+  const clickColumn = async (user: UserEvent, index: number) =>
+    user.click(screen.getByRole('columnheader').all()[index]);
 
   it('passes a11y checks', () => checkAccessibility(setUpWithBots()));
 
   it('renders expected amount of columns', () => {
     setUp();
-    expect(screen.getAllByRole('columnheader')).toHaveLength(10);
+    expect(screen.getByRole('columnheader').all()).toHaveLength(10);
   });
 
-  it('shows warning when no visits are found', () => {
+  it('shows warning when no visits are found', async () => {
     setUp();
-    expect(screen.getByText('There are no visits matching current filter')).toBeInTheDocument();
+    await expect.element(screen.getByText('There are no visits matching current filter')).toBeInTheDocument();
   });
 
   it.each(rangeOf(20, (value) => [value]))(
     'does not render footer when there is only one page to render',
-    (visitsCount) => {
+    async (visitsCount) => {
       const { container } = setUp(
         rangeOf(visitsCount, () => fromPartial<NormalizedVisit>({ browser: '', date: '2022-01-01', referer: '' })),
       );
 
-      expect(container.querySelector('tfoot')).not.toBeInTheDocument();
-      expect(screen.queryByLabelText('pagination')).not.toBeInTheDocument();
+      await Promise.all([
+        expect.element(container.querySelector('tfoot')).not.toBeInTheDocument(),
+        expect.element(screen.getByLabelText('pagination')).not.toBeInTheDocument(),
+      ]);
     },
   );
 
@@ -68,15 +71,15 @@ describe('<VisitsTable />', () => {
     expect(container.querySelectorAll('.bg-lm-table-highlight')).toHaveLength(2);
 
     // Select one extra
-    await user.click(screen.getAllByRole('row')[5]);
+    await user.click(screen.getByRole('row').all()[5]);
     expect(setSelectedVisits).toHaveBeenCalledWith([visits[1], visits[2], visits[4]]);
 
     // Deselect one
-    await user.click(screen.getAllByRole('row')[3]);
+    await user.click(screen.getByRole('row').all()[3]);
     expect(setSelectedVisits).toHaveBeenCalledWith([visits[1]]);
 
     // Select all
-    await user.click(screen.getAllByRole('columnheader')[0]);
+    await user.click(screen.getByRole('columnheader').first());
     expect(setSelectedVisits).toHaveBeenCalledWith(visits);
   });
 
@@ -108,7 +111,7 @@ describe('<VisitsTable />', () => {
       ...rangeOf(7, () => fromPartial<NormalizedVisit>({ browser: 'aaa', date: '2022-01-01', referer: 'aaa' })),
       ...rangeOf(2, () => fromPartial<NormalizedVisit>({ browser: 'bbb', date: '2022-01-01', referer: 'bbb' })),
     ]);
-    const searchField = screen.getByPlaceholderText('Search...');
+    const searchField = screen.getByPlaceholder('Search...');
     const searchText = async (text: string) => {
       await user.clear(searchField);
       if (text.length > 0) {
@@ -116,13 +119,13 @@ describe('<VisitsTable />', () => {
       }
     };
 
-    expect(screen.getAllByRole('row')).toHaveLength(9 + 2);
+    expect(screen.getByRole('row').all()).toHaveLength(9 + 2);
     await searchText('aa');
-    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(7 + 2));
+    await expect.poll(() => screen.getByRole('row').all()).toHaveLength(7 + 2);
     await searchText('bb');
-    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(2 + 2));
+    await expect.poll(() => screen.getByRole('row').all()).toHaveLength(2 + 2);
     await searchText('');
-    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(9 + 2));
+    await expect.poll(() => screen.getByRole('row').all()).toHaveLength(9 + 2);
   });
 
   it('resets selected visits when search term changes', async () => {
@@ -133,17 +136,17 @@ describe('<VisitsTable />', () => {
 
     // Jump to second page, and then set some filtering text
     await user.click(screen.getByRole('button', { name: '2' }));
-    await user.type(screen.getByPlaceholderText('Search...'), 'foo');
+    await user.type(screen.getByPlaceholder('Search...'), 'foo');
 
     // Search is deferred, so let's wait for it to apply
-    await waitFor(() => screen.getByText('There are no visits matching current filter'));
+    await screen.getByText('There are no visits matching current filter').findElement();
 
     expect(setSelectedVisits).toHaveBeenCalledWith([]);
   });
 
   it.each([{ withVisitedUrl: true }, { withVisitedUrl: false }])(
     'displays proper amount of columns based on visited URL',
-    ({ withVisitedUrl }) => {
+    async ({ withVisitedUrl }) => {
       setUp([
         fromPartial<NormalizedRegularVisit>({
           visitedUrl: withVisitedUrl ? 'visited_url' : undefined,
@@ -151,24 +154,26 @@ describe('<VisitsTable />', () => {
         }),
       ]);
 
-      const cells = screen.getAllByRole('cell');
+      const cells = screen.getByRole('cell').all();
       const lastCell = cells[cells.length - 1];
 
-      expect(screen.getAllByRole('columnheader')).toHaveLength(withVisitedUrl ? 10 : 9);
+      expect(screen.getByRole('columnheader').all()).toHaveLength(withVisitedUrl ? 10 : 9);
       if (withVisitedUrl) {
-        expect(lastCell).toHaveTextContent('visited_url');
+        await expect.element(lastCell).toHaveTextContent('visited_url');
       } else {
-        expect(lastCell).not.toHaveTextContent('visited_url');
+        await expect.element(lastCell).not.toHaveTextContent('visited_url');
       }
     },
   );
 
-  it('displays bots icon when a visit is a potential bot', () => {
+  it('displays bots icon when a visit is a potential bot', async () => {
     setUpWithBots();
-    const [, , nonBotVisitRow, botVisitRow] = screen.getAllByRole('row');
+    const [, , nonBotVisitRow, botVisitRow] = screen.getByRole('row').elements();
 
-    expect(nonBotVisitRow.querySelectorAll('td')[1]).toBeEmptyDOMElement();
-    expect(botVisitRow.querySelectorAll('td')[1]).not.toBeEmptyDOMElement();
+    await Promise.all([
+      expect.element(nonBotVisitRow.querySelectorAll('td')[1]).toBeEmptyDOMElement(),
+      expect.element(botVisitRow.querySelectorAll('td')[1]).not.toBeEmptyDOMElement(),
+    ]);
   });
 
   it.each([
@@ -216,6 +221,6 @@ describe('<VisitsTable />', () => {
     const enabledColumnEntries = columnEntries.filter(([, enabled]) => enabled);
 
     // Add 2, for the search bar and the selected column, which are always displayed
-    expect(screen.getAllByRole('columnheader')).toHaveLength(enabledColumnEntries.length + 2);
+    expect(screen.getByRole('columnheader').all()).toHaveLength(enabledColumnEntries.length + 2);
   });
 });

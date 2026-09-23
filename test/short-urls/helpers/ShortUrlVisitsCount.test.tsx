@@ -1,5 +1,5 @@
-import { screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { ShlinkShortUrl } from '../../../src/api-contract';
 import { ShortUrlVisitsCount } from '../../../src/short-urls/helpers/ShortUrlVisitsCount';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -19,21 +19,23 @@ describe('<ShortUrlVisitsCount />', () => {
       ),
     ));
 
-  it.each([undefined, {}])('just returns visits when no limits are provided', (meta) => {
+  it.each([undefined, {}])('just returns visits when no limits are provided', async (meta) => {
     const visitsCount = 45;
     const { container } = setUp(visitsCount, fromPartial({ meta }));
 
-    expect(container.firstChild).toHaveTextContent(`${visitsCount}`);
-    expect(container.querySelector('.short-urls-visits-count__max-visits-control')).not.toBeInTheDocument();
+    await expect.element(container.firstChild as HTMLElement).toMatchTextContent(`${visitsCount}`);
+    await expect
+      .element(container.querySelector('.short-urls-visits-count__max-visits-control') as HTMLElement)
+      .not.toBeInTheDocument();
   });
 
-  it('displays the maximum amount of visits when present', () => {
+  it('displays the maximum amount of visits when present', async () => {
     const visitsCount = 45;
     const maxVisits = 500;
     const meta = { maxVisits };
     const { container } = setUp(visitsCount, fromPartial({ meta }));
 
-    expect(container.firstChild).toHaveTextContent(`/ ${maxVisits}`);
+    await expect.element(container.firstChild as HTMLElement).toMatchTextContent(`/ ${maxVisits}`);
   });
 
   it.each([
@@ -59,11 +61,12 @@ describe('<ShortUrlVisitsCount />', () => {
   ])('displays proper amount of tooltip list items', async (expectedListItems, meta) => {
     const { user } = setUp(100, fromPartial({ meta }));
 
-    await user.hover(screen.getByRole('img', { hidden: true }));
-    await waitFor(() => expect(screen.getByRole('list')));
+    await user.hover(screen.getByRole('img', { includeHidden: true }));
+    // Wait for list to be fully displayed
+    await screen.getByRole('list').findElement();
 
-    const items = screen.getAllByRole('listitem');
+    const items = screen.getByRole('listitem').elements();
     expect(items).toHaveLength(expectedListItems.length);
-    expectedListItems.forEach((text, index) => expect(items[index]).toHaveTextContent(text));
+    await Promise.all(expectedListItems.map((text, index) => expect.element(items[index]).toMatchTextContent(text)));
   });
 });

@@ -1,6 +1,6 @@
-import { screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import { ContainerProvider } from '../../src/container/context';
 import { SettingsProvider } from '../../src/settings';
 import type { TagsList } from '../../src/tags/reducers/tagsList';
@@ -46,22 +46,26 @@ describe('<TagsList />', () => {
   it('shows a loading message when tags are being loaded', async () => {
     setUp({ status: 'loading' });
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-    expect(screen.queryByText('Error loading tags :(')).not.toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByText('Loading...')).toBeInTheDocument(),
+      expect.element(screen.getByText('Error loading tags :(')).not.toBeInTheDocument(),
+    ]);
   });
 
-  it('shows an error when tags failed to be loaded', () => {
+  it('shows an error when tags failed to be loaded', async () => {
     setUp({ status: 'error' });
 
-    expect(screen.getByText('Error loading tags :(')).toBeInTheDocument();
-    expect(screen.queryByText('Loading')).not.toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByText('Error loading tags :(')).toBeInTheDocument(),
+      expect.element(screen.getByText('Loading')).not.toBeInTheDocument(),
+    ]);
   });
 
   it('filters tags when search field changes', async () => {
     const { user, store } = setUp();
 
-    await user.type(screen.getByPlaceholderText('Search...'), 'ba');
-    await waitFor(() => expect(store.getState().tagsList.filteredTags).toEqual(['bar', 'baz']));
+    await user.type(screen.getByPlaceholder('Search...'), 'ba');
+    await expect.poll(() => store.getState().tagsList.filteredTags).toEqual(['bar', 'baz']);
   });
 
   it.each([
@@ -83,7 +87,7 @@ describe('<TagsList />', () => {
       },
       '15',
     ],
-  ])('displays proper amount of visits', (excludeBots, visitsSummary, expectedAmount) => {
+  ])('displays proper amount of visits', async (excludeBots, visitsSummary, expectedAmount) => {
     setUp(
       {
         filteredTags: ['foo', 'bar', 'baz'],
@@ -105,9 +109,7 @@ describe('<TagsList />', () => {
       excludeBots,
     );
 
-    const amounts = screen.getAllByTestId('visits-amount');
-    amounts.forEach((amountEl) => {
-      expect(amountEl).toHaveTextContent(expectedAmount);
-    });
+    const amounts = screen.getByTestId('visits-amount').all();
+    await Promise.all(amounts.map((amountEl) => expect.element(amountEl).toHaveTextContent(expectedAmount)));
   });
 });

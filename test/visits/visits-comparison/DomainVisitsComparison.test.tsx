@@ -1,7 +1,8 @@
 import type { ShlinkVisitsList } from '@shlinkio/shlink-js-sdk/api-contract';
-import { cleanup, screen, waitFor } from '@testing-library/react';
+import { cleanup } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import { DomainVisitsComparison } from '../../../src/visits/visits-comparison/DomainVisitsComparison';
 import { checkAccessibility } from '../../__helpers__/accessibility';
 import { renderWithStore } from '../../__helpers__/setUpTest';
@@ -23,7 +24,7 @@ describe('<DomainVisitsComparison />', () => {
       },
     );
 
-    await waitFor(() => expect(screen.queryByText('Loading...')).not.toBeInTheDocument());
+    await expect.element(screen.getByText('Loading...')).not.toBeInTheDocument();
 
     return renderResult;
   };
@@ -51,7 +52,9 @@ describe('<DomainVisitsComparison />', () => {
     'renders domains in title',
     async (domains) => {
       const setUpPromise = setUp(domains);
-      expect(screen.getByRole('heading', { name: `Comparing "${domains.join('", "')}"` })).toBeInTheDocument();
+      await expect
+        .element(screen.getByRole('heading', { name: `Comparing "${domains.join('", "')}"` }))
+        .toBeInTheDocument();
 
       await setUpPromise;
     },

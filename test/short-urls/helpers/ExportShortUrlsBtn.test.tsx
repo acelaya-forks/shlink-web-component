@@ -1,6 +1,6 @@
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
+import { page as screen } from 'vitest/browser';
 import type { ShlinkShortUrl } from '../../../src/api-contract';
 import { ExportShortUrlsBtn } from '../../../src/short-urls/helpers/ExportShortUrlsBtn';
 import type { ReportExporter } from '../../../src/utils/services/ReportExporter';
@@ -28,9 +28,9 @@ describe('<ExportShortUrlsBtn />', () => {
     [undefined, '0'],
     [1, '1'],
     [4578, '4,578'],
-  ])('renders expected amount', (amount, expectedAmount) => {
+  ])('renders expected amount', async (amount, expectedAmount) => {
     setUp(amount);
-    expect(screen.getByText(/Export/)).toHaveTextContent(`Export (${expectedAmount})`);
+    await expect.element(screen.getByText(/Export/)).toHaveTextContent(`Export (${expectedAmount})`);
   });
 
   it.each([

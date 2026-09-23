@@ -1,6 +1,6 @@
 import { range } from '@shlinkio/data-manipulation';
-import { screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { page as screen } from 'vitest/browser';
 import { SortableBarChartCard } from '../../../src/visits/charts/SortableBarChartCard';
 import type { Stats } from '../../../src/visits/types';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -87,16 +87,16 @@ describe('<SortableBarChartCard />', () => {
     if (typeof itemIndex === 'string') {
       await user.click(screen.getByRole('menuitem', { name: itemIndex }));
     } else {
-      await user.click(screen.getAllByRole('menuitem', { name: /items per page$/ })[itemIndex]);
+      await user.click(screen.getByRole('menuitem', { name: /items per page$/ }).all()[itemIndex]);
     }
 
     if (expectedPages > 0) {
-      const pagination = screen.getByTestId('chart-paginator');
-      expect(pagination).toBeInTheDocument();
+      const pagination = screen.getByTestId('chart-paginator').element();
+      await expect.element(pagination).toBeInTheDocument();
       // Add one page for the `next` button
       expect(pagination.querySelectorAll('button')).toHaveLength(expectedPages + 1);
     } else {
-      expect(screen.queryByTestId('chart-paginator')).not.toBeInTheDocument();
+      await expect.element(screen.getByTestId('chart-paginator')).not.toBeInTheDocument();
     }
   });
 
@@ -125,7 +125,7 @@ describe('<SortableBarChartCard />', () => {
     expect(container.querySelectorAll('.recharts-bar-rectangles')).toHaveLength(expectedRectangles);
   });
 
-  it('renders extra header content', () => {
+  it('renders extra header content', async () => {
     setUp({
       extra: () => (
         <span>
@@ -135,7 +135,9 @@ describe('<SortableBarChartCard />', () => {
       ),
     });
 
-    expect(screen.getByText('Foo in header')).toBeInTheDocument();
-    expect(screen.getByText('Bar in header')).toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByText('Foo in header')).toBeInTheDocument(),
+      expect.element(screen.getByText('Bar in header')).toBeInTheDocument(),
+    ]);
   });
 });

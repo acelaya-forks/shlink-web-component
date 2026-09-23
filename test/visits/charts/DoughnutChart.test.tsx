@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { page as screen } from 'vitest/browser';
 import { ChartDimensionsProvider } from '../../../src/visits/charts/ChartDimensionsContext';
 import { DoughnutChart } from '../../../src/visits/charts/DoughnutChart';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -23,10 +23,12 @@ describe('<DoughnutChart />', () => {
     },
   );
 
-  it('renders expected legend', () => {
+  it('renders expected legend', async () => {
     setUp();
 
-    expect(screen.getByText('foo')).toBeInTheDocument();
-    expect(screen.getByText('bar')).toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByText(/foo/)).toBeInTheDocument(),
+      expect.element(screen.getByText(/bar/)).toBeInTheDocument(),
+    ]);
   });
 });

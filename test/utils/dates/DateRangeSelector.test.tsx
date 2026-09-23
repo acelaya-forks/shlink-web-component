@@ -1,5 +1,5 @@
-import { screen, waitFor } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { DateRangeSelectorProps } from '../../../src/utils/dates/DateRangeSelector';
 import { DateRangeSelector } from '../../../src/utils/dates/DateRangeSelector';
 import type { DateInterval } from '../../../src/utils/dates/helpers/dateIntervals';
@@ -17,14 +17,15 @@ describe('<DateRangeSelector />', () => {
     );
 
     await result.user.click(screen.getByRole('button'));
-    await waitFor(() => screen.getByRole('menu'));
+    // Wait for menu to be displayed
+    await screen.getByRole('menu').findElement();
 
     return result;
   };
 
   it('renders proper amount of items', async () => {
     await setUp();
-    expect(screen.getAllByRole('menuitem')).toHaveLength(8);
+    expect(screen.getByRole('menuitem').all()).toHaveLength(8);
   });
 
   it.each([
@@ -48,13 +49,13 @@ describe('<DateRangeSelector />', () => {
 
     await user.type(screen.getByLabelText('Since:'), '2020-01-01');
     await user.type(screen.getByLabelText('Until:'), '2022-01-01');
-    await user.click(screen.getAllByRole('menuitem')[0]);
+    await user.click(screen.getByRole('menuitem').first());
 
     expect(onDatesChange).toHaveBeenCalledTimes(3);
   });
 
   it('propagates default text to DateIntervalDropdownItems', async () => {
     await setUp();
-    expect(screen.getAllByText('Default text')).toHaveLength(2);
+    expect(screen.getByText('Default text').all()).toHaveLength(2);
   });
 });

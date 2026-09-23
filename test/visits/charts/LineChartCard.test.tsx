@@ -1,6 +1,6 @@
-import { fireEvent, screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { formatISO, subDays, subMonths, subYears } from 'date-fns';
+import { page as screen } from 'vitest/browser';
 import { isBeforeOrEqual } from '../../../src/utils/dates/helpers/date';
 import type { StrictDateRange } from '../../../src/utils/dates/helpers/dateIntervals';
 import { ChartDimensionsProvider } from '../../../src/visits/charts/ChartDimensionsContext';
@@ -71,14 +71,16 @@ describe('<LineChartCard />', () => {
 
       await user.click(screen.getByRole('button', { name: /Group by/ }));
 
-      const items = screen.getAllByRole('menuitem');
+      const items = screen.getByRole('menuitem').all();
 
       expect(items).toHaveLength(4);
-      expect(items[0]).toHaveTextContent('Month');
-      expect(items[1]).toHaveTextContent('Week');
-      expect(items[2]).toHaveTextContent('Day');
-      expect(items[3]).toHaveTextContent('Hour');
-      expect(items[expectedActiveIndex]).toHaveAttribute('data-selected', 'true');
+      await Promise.all([
+        expect.element(items[0]).toHaveTextContent('Month'),
+        expect.element(items[1]).toHaveTextContent('Week'),
+        expect.element(items[2]).toHaveTextContent('Day'),
+        expect.element(items[3]).toHaveTextContent('Hour'),
+        expect.element(items[expectedActiveIndex]).toHaveAttribute('data-selected', 'true'),
+      ]);
     },
   );
 
@@ -121,6 +123,15 @@ describe('<LineChartCard />', () => {
     expect(container).toMatchSnapshot();
   });
 
+  const fireMouseEvent = (element: Element, type: string, init: Partial<MouseEventInit>) =>
+    element.dispatchEvent(
+      new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        ...init,
+      }),
+    );
+
   // FIXME Skipping this test, as testing mouse events in recharts is utterly complex and inconsistent
   //       See https://github.com/recharts/recharts/discussions/6178#discussioncomment-15110851
   it.skip.each([
@@ -135,9 +146,9 @@ describe('<LineChartCard />', () => {
     // See https://github.com/recharts/recharts/discussions/6178#discussioncomment-14029671
     await user.click(chart);
 
-    fireEvent.mouseDown(chart, { clientX: selectionStart, clientY: 200, button: 0 });
-    fireEvent.mouseMove(chart, { clientX: selectionEnd, clientY: 200 });
-    fireEvent.mouseUp(chart, { clientX: selectionEnd, clientY: 200 });
+    fireMouseEvent(chart, 'mousedown', { clientX: selectionStart, clientY: 200, button: 0 });
+    fireMouseEvent(chart, 'mousemove', { clientX: selectionEnd, clientY: 200 });
+    fireMouseEvent(chart, 'mouseup', { clientX: selectionEnd, clientY: 200 });
 
     expect(onDateRangeChange).toHaveBeenCalled();
 
@@ -151,9 +162,9 @@ describe('<LineChartCard />', () => {
     ({ button }) => {
       const { chart } = setUpChartWithData();
 
-      fireEvent.mouseDown(chart, { clientX: 100, clientY: 200, button });
-      fireEvent.mouseMove(chart, { clientX: 300, clientY: 200 });
-      fireEvent.mouseUp(chart, { clientX: 300, clientY: 200 });
+      fireMouseEvent(chart, 'mousedown', { clientX: 100, clientY: 200, button });
+      fireMouseEvent(chart, 'mousemove', { clientX: 300, clientY: 200 });
+      fireMouseEvent(chart, 'mouseup', { clientX: 300, clientY: 200 });
 
       expect(onDateRangeChange).not.toHaveBeenCalled();
     },
@@ -163,9 +174,9 @@ describe('<LineChartCard />', () => {
     const { user } = setUpChartWithData();
     const card = screen.getByTestId('line-chart-card');
 
-    expect(card).not.toHaveClass('fixed');
+    await expect.element(card).not.toHaveClass('fixed');
     await user.click(screen.getByLabelText('Expand'));
-    expect(card).toHaveClass('fixed');
+    await expect.element(card).toHaveClass('fixed');
   });
 
   it('collapses chart when pressing Escape while expanded', async () => {
@@ -173,8 +184,8 @@ describe('<LineChartCard />', () => {
     const card = screen.getByTestId('line-chart-card');
 
     await user.click(screen.getByLabelText('Expand'));
-    expect(card).toHaveClass('fixed');
+    await expect.element(card).toHaveClass('fixed');
     await user.keyboard('{Escape}');
-    expect(card).not.toHaveClass('fixed');
+    await expect.element(card).not.toHaveClass('fixed');
   });
 });

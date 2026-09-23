@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import { rangeOf } from '../../../src/utils/helpers';
 import { LineChartLegend } from '../../../src/visits/charts/LineChartLegend';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -23,18 +24,20 @@ describe('<LineChartLegend />', () => {
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
-  it('renders no list when entries are empty', () => {
+  it('renders no list when entries are empty', async () => {
     const { container } = setUp({ emptyVisits: true });
-    expect(container).toBeEmptyDOMElement();
+    await expect.element(container).toBeEmptyDOMElement();
   });
 
-  it('renders every entry with their corresponding amount', () => {
+  it('renders every entry with their corresponding amount', async () => {
     setUp();
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(4);
-    expect(screen.queryByText(/^red/)).toHaveTextContent('red (3)');
-    expect(screen.queryByText(/^green/)).toHaveTextContent('green (5)');
-    expect(screen.queryByText(/^blue/)).toHaveTextContent('blue (0)');
-    expect(screen.queryByText(/^yellow/)).toHaveTextContent('yellow (1,322)');
+    expect(screen.getByRole('listitem').all()).toHaveLength(4);
+    await Promise.all([
+      expect.element(screen.getByText(/^red/)).toHaveTextContent('red (3)'),
+      expect.element(screen.getByText(/^green/)).toHaveTextContent('green (5)'),
+      expect.element(screen.getByText(/^blue/)).toHaveTextContent('blue (0)'),
+      expect.element(screen.getByText(/^yellow/)).toHaveTextContent('yellow (1,322)'),
+    ]);
   });
 });

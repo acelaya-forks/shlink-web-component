@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { page as screen } from 'vitest/browser';
 import type { ShortUrlsListSettings as ShortUrlsSettings } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
 import { ShortUrlsListSettings } from '../../../src/settings/components/ShortUrlsListSettings';
@@ -26,9 +26,9 @@ describe('<ShortUrlsListSettings />', () => {
       'Order by: Long URL - DESC',
     ],
     [fromPartial<ShortUrlsSettings>({ defaultOrdering: { field: 'visits', dir: 'ASC' } }), 'Order by: Visits - ASC'],
-  ])('shows expected ordering', (shortUrlsList, expectedOrder) => {
+  ])('shows expected ordering', async (shortUrlsList, expectedOrder) => {
     setUp(shortUrlsList);
-    expect(screen.getByRole('button')).toHaveTextContent(expectedOrder);
+    await expect.element(screen.getByRole('button')).toMatchTextContent(expectedOrder);
   });
 
   it.each([
@@ -49,7 +49,7 @@ describe('<ShortUrlsListSettings />', () => {
     [{ confirmDeletions: true }, true],
     [{ confirmDeletions: false }, false],
     [undefined, true],
-  ])('Deletion confirmation switch has proper initial state', (shortUrlCreation, expectedChecked) => {
+  ])('Deletion confirmation switch has proper initial state', async (shortUrlCreation, expectedChecked) => {
     const matcher = /^Request confirmation before deleting a short URL./;
 
     setUp(shortUrlCreation);
@@ -58,13 +58,17 @@ describe('<ShortUrlsListSettings />', () => {
     const helpText = screen.getByTestId('help-text');
 
     if (expectedChecked) {
-      expect(checkbox).toBeChecked();
-      expect(helpText).toHaveTextContent('When deleting a short URL, confirmation will be required.');
-      expect(helpText).not.toHaveTextContent("When deleting a short URL, confirmation won't be required.");
+      await expect.element(checkbox).toBeChecked();
+      await expect.element(helpText).toMatchTextContent('When deleting a short URL, confirmation will be required.');
+      await expect
+        .element(helpText)
+        .not.toMatchTextContent("When deleting a short URL, confirmation won't be required.");
     } else {
-      expect(checkbox).not.toBeChecked();
-      expect(helpText).toHaveTextContent("When deleting a short URL, confirmation won't be required.");
-      expect(helpText).not.toHaveTextContent('When deleting a short URL, confirmation will be required.');
+      await expect.element(checkbox).not.toBeChecked();
+      await expect.element(helpText).toMatchTextContent("When deleting a short URL, confirmation won't be required.");
+      await expect
+        .element(helpText)
+        .not.toMatchTextContent('When deleting a short URL, confirmation will be required.');
     }
   });
 
