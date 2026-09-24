@@ -1,8 +1,7 @@
-import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import { AsideMenu } from '../../src/common/AsideMenu';
 import { checkAccessibility } from '../__helpers__/accessibility';
+import { render } from '../__helpers__/setUpTest';
 
 describe('<AsideMenu />', () => {
   const setUp = () =>
@@ -15,7 +14,7 @@ describe('<AsideMenu />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('contains links to different sections', async () => {
-    setUp();
+    const screen = await setUp();
 
     const links = screen.getByRole('link').all();
 
