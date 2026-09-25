@@ -1,8 +1,8 @@
-import { render } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import type { ShlinkShortUrl, ShlinkShortUrlMeta, ShlinkVisitsSummary } from '../../../src/api-contract';
 import { ShortUrlStatus } from '../../../src/short-urls/helpers/ShortUrlStatus';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import { render } from '../../__helpers__/setUpTest';
 
 describe('<ShortUrlStatus />', () => {
   const setUp = (shortUrl: ShlinkShortUrl) => render(<ShortUrlStatus shortUrl={shortUrl} />);
@@ -55,7 +55,7 @@ describe('<ShortUrlStatus />', () => {
       'This short URL can be visited normally',
     ],
   ])('shows expected tooltip', async (meta, visitsSummary, expectedTooltip) => {
-    const { container } = setUp(fromPartial({ meta, visitsSummary }));
+    const { container } = await setUp(fromPartial({ meta, visitsSummary }));
     await expect.element(container.firstChild as HTMLElement).toHaveAttribute('title', expectedTooltip);
   });
 });

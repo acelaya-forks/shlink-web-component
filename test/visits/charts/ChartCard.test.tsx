@@ -1,8 +1,7 @@
-import { render } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { page as screen } from 'vitest/browser';
 import { ChartCard } from '../../../src/visits/charts/ChartCard';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import { render } from '../../__helpers__/setUpTest';
 
 describe('<ChartCard />', () => {
   const setUp = (title: ReactNode = '', footer?: ReactNode) => render(<ChartCard title={title} footer={footer} />);
@@ -10,12 +9,12 @@ describe('<ChartCard />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('properly renders title by parsing provided value', async () => {
-    setUp('the title');
+    const screen = await setUp('the title');
     await expect.element(screen.getByText('the title')).toBeInTheDocument();
   });
 
   it('renders footer only when provided', async () => {
-    setUp('', 'the footer');
+    const screen = await setUp('', 'the footer');
     await expect.element(screen.getByText('the footer')).toBeInTheDocument();
   });
 });

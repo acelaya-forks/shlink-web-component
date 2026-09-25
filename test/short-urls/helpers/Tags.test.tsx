@@ -1,7 +1,6 @@
-import { render } from '@testing-library/react';
-import { page as screen } from 'vitest/browser';
 import { Tags } from '../../../src/short-urls/helpers/Tags';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import { render } from '../../__helpers__/setUpTest';
 import { colorGeneratorMock } from '../../utils/services/__mocks__/ColorGenerator.mock';
 
 describe('<Tags />', () => {
@@ -12,17 +11,19 @@ describe('<Tags />', () => {
   );
 
   it('returns no tags when the list is empty', async () => {
-    setUp([]);
+    const screen = await setUp([]);
     await expect.element(screen.getByText('No tags')).toBeInTheDocument();
   });
 
   it.each([[['foo', 'bar', 'baz']], [['one', 'two', 'three', 'four', 'five']]])(
     'returns expected tags based on provided list',
     async (tags) => {
-      setUp(tags);
+      const screen = await setUp(tags);
 
-      await expect.element(screen.getByText('No tags')).not.toBeInTheDocument();
-      await Promise.all(tags.map((tag) => expect.element(screen.getByText(tag)).toBeInTheDocument()));
+      await Promise.all([
+        expect.element(screen.getByText('No tags')).not.toBeInTheDocument(),
+        ...tags.map((tag) => expect.element(screen.getByText(tag)).toBeInTheDocument()),
+      ]);
     },
   );
 });

@@ -1,7 +1,6 @@
-import { render } from '@testing-library/react';
-import { page as screen } from 'vitest/browser';
 import { ColorInput } from '../../../src/utils/components/ColorInput';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import { render } from '../../__helpers__/setUpTest';
 
 describe('<ColorInput />', () => {
   const onChange = vi.fn();
@@ -11,7 +10,7 @@ describe('<ColorInput />', () => {
 
   it('sets color in text and color inputs', async () => {
     const color = '#010101';
-    setUp(color);
+    const screen = await setUp(color);
 
     await Promise.all([
       expect.element(screen.getByLabelText('name')).toHaveValue(color),

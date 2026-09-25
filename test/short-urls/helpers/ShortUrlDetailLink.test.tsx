@@ -1,13 +1,12 @@
 import { Card } from '@shlinkio/shlink-frontend-kit';
-import { render } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { ShlinkShortUrl } from '../../../src/api-contract';
 import type { LinkSuffix, ShortUrlDetailLinkProps } from '../../../src/short-urls/helpers/ShortUrlDetailLink';
 import { ShortUrlDetailLink } from '../../../src/short-urls/helpers/ShortUrlDetailLink';
 import { RoutesPrefixProvider } from '../../../src/utils/routesPrefix';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import { render } from '../../__helpers__/setUpTest';
 
 describe('<ShortUrlDetailLink />', () => {
   const setUp = (props: Partial<ShortUrlDetailLinkProps>, routesPrefix = '') =>
@@ -39,10 +38,12 @@ describe('<ShortUrlDetailLink />', () => {
     [false, fromPartial<ShlinkShortUrl>({})],
     [false, fromPartial<ShlinkShortUrl>({})],
   ])('only renders a plain span when short URL is not set or asLink is false', async (asLink, shortUrl) => {
-    setUp({ asLink, shortUrl });
+    const screen = await setUp({ asLink, shortUrl });
 
-    await expect.element(screen.getByRole('link')).not.toBeInTheDocument();
-    await expect.element(screen.getByText('Something')).toBeInTheDocument();
+    await Promise.all([
+      expect.element(screen.getByRole('link')).not.toBeInTheDocument(),
+      expect.element(screen.getByText('Something')).toBeInTheDocument(),
+    ]);
   });
 
   it.each([
@@ -71,7 +72,7 @@ describe('<ShortUrlDetailLink />', () => {
       '/server/3/short-code/def456/edit?domain=example.com',
     ],
   ])('renders link with expected query', async (routesPrefix, shortUrl, suffix, expectedLink) => {
-    setUp({ shortUrl, suffix }, routesPrefix);
+    const screen = await setUp({ shortUrl, suffix }, routesPrefix);
     await expect.element(screen.getByRole('link')).toHaveProperty('href', expect.stringContaining(expectedLink));
   });
 });

@@ -1,4 +1,3 @@
-import { fireEvent } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { page as screen } from 'vitest/browser';
 import type { ShortUrlsOrderableFields } from '../../src/short-urls/data';
@@ -55,9 +54,7 @@ describe('<ShortUrlsTable />', () => {
       const element = getThElementForSortableField(sortableField);
 
       expect(element).toBeDefined();
-      if (element) {
-        fireEvent.click(element);
-      }
+      element?.dispatchEvent(new Event('click', { bubbles: true }));
       expect(orderByColumn).toHaveBeenCalled();
     });
   });

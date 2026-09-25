@@ -1,9 +1,8 @@
-import { render } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import { ShlinkWebSettings } from '../../../src/settings';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import { render } from '../../__helpers__/setUpTest';
 
 describe('<ShlinkWebSettings />', () => {
   const setUp = (activeRoute = '/') => {
@@ -74,7 +73,7 @@ describe('<ShlinkWebSettings />', () => {
       ],
     },
   ])('renders expected sections based on route', async ({ activeRoute, visibleComps, hiddenComps }) => {
-    setUp(activeRoute);
+    const screen = await setUp(activeRoute);
 
     await Promise.all([
       ...visibleComps.map((name) => expect.element(screen.getByRole('heading', { name })).toBeInTheDocument()),
@@ -83,12 +82,14 @@ describe('<ShlinkWebSettings />', () => {
   });
 
   it('renders expected menu', async () => {
-    setUp();
+    const screen = await setUp();
 
-    await expect.element(screen.getByRole('menuitem', { name: 'General' })).toHaveAttribute('href', '/general');
-    await expect.element(screen.getByRole('menuitem', { name: 'Short URLs' })).toHaveAttribute('href', '/short-urls');
-    await expect.element(screen.getByRole('menuitem', { name: 'Visits' })).toHaveAttribute('href', '/visits');
-    await expect.element(screen.getByRole('menuitem', { name: 'Tags' })).toHaveAttribute('href', '/tags');
-    await expect.element(screen.getByRole('menuitem', { name: 'QR codes' })).toHaveAttribute('href', '/qr-codes');
+    await Promise.all([
+      expect.element(screen.getByRole('menuitem', { name: 'General' })).toHaveAttribute('href', '/general'),
+      expect.element(screen.getByRole('menuitem', { name: 'Short URLs' })).toHaveAttribute('href', '/short-urls'),
+      expect.element(screen.getByRole('menuitem', { name: 'Visits' })).toHaveAttribute('href', '/visits'),
+      expect.element(screen.getByRole('menuitem', { name: 'Tags' })).toHaveAttribute('href', '/tags'),
+      expect.element(screen.getByRole('menuitem', { name: 'QR codes' })).toHaveAttribute('href', '/qr-codes'),
+    ]);
   });
 });

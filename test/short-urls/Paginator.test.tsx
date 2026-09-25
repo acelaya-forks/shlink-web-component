@@ -1,11 +1,10 @@
 import { ELLIPSIS } from '@shlinkio/shlink-frontend-kit';
-import { render } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { ShlinkPaginator } from '../../src/api-contract';
 import { Paginator } from '../../src/short-urls/Paginator';
 import { checkAccessibility } from '../__helpers__/accessibility';
+import { render } from '../__helpers__/setUpTest';
 
 describe('<Paginator />', () => {
   const buildPaginator = (pagesCount?: number) => fromPartial<ShlinkPaginator>({ pagesCount, currentPage: 1 });
@@ -29,7 +28,7 @@ describe('<Paginator />', () => {
   it.each([[undefined], [buildPaginator()], [buildPaginator(0)], [buildPaginator(1)]])(
     'renders an empty gap if the number of pages is below 2',
     async (paginator) => {
-      setUp(paginator);
+      const screen = await setUp(paginator);
       await expect.element(screen.getByTestId('empty-gap')).toBeInTheDocument();
     },
   );
@@ -43,8 +42,8 @@ describe('<Paginator />', () => {
     { paginator: buildPaginator(23), expectedPages: 5, expectedEllipsis: 1 },
   ])(
     'renders previous, next and the list of pages, with ellipses when expected',
-    ({ paginator, expectedPages, expectedEllipsis }) => {
-      setUp(paginator);
+    async ({ paginator, expectedPages, expectedEllipsis }) => {
+      const screen = await setUp(paginator);
 
       expect(screen.getByRole('link').all()).toHaveLength(expectedPages);
       expect(screen.getByText(ELLIPSIS).all()).toHaveLength(expectedEllipsis);
@@ -55,7 +54,7 @@ describe('<Paginator />', () => {
     const paginator = buildPaginator(3);
     const currentQueryString = '?foo=bar';
 
-    setUp(paginator, currentQueryString);
+    const screen = await setUp(paginator, currentQueryString);
     const links = screen.getByRole('link').all();
 
     expect(links).toHaveLength(4);

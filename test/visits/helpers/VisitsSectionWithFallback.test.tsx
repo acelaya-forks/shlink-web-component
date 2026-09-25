@@ -1,7 +1,6 @@
-import { render } from '@testing-library/react';
-import { page as screen } from 'vitest/browser';
 import { VisitsSectionWithFallback } from '../../../src/visits/helpers/VisitsSectionWithFallback';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import { render } from '../../__helpers__/setUpTest';
 
 describe('<VisitsSectionWithFallback />', () => {
   const setUp = (showFallback: boolean) =>
@@ -10,7 +9,7 @@ describe('<VisitsSectionWithFallback />', () => {
   it.each([[true], [false]])('passes a11y checks', (showFallback) => checkAccessibility(setUp(showFallback)));
 
   it.each([[true], [false]])('shows expected content', async (showFallback) => {
-    setUp(showFallback);
+    const screen = await setUp(showFallback);
 
     if (showFallback) {
       await Promise.all([

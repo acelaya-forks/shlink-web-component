@@ -1,11 +1,10 @@
 import { formatNumber } from '@shlinkio/shlink-frontend-kit';
-import { render } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { DoughnutChartEntry } from '../../../src/visits/charts/DoughnutChart';
 import { DoughnutChartLegend } from '../../../src/visits/charts/DoughnutChartLegend';
 import { checkAccessibility } from '../../__helpers__/accessibility';
 import { hexToRgb } from '../../__helpers__/colors';
+import { render } from '../../__helpers__/setUpTest';
 
 describe('<DoughnutChartLegend />', () => {
   const chartData: DoughnutChartEntry[] = [
@@ -23,8 +22,7 @@ describe('<DoughnutChartLegend />', () => {
   it.each([[true], [false]])(
     'renders the expected amount of items with expected colors and labels',
     async (showNumbers) => {
-      setUp(showNumbers);
-
+      const screen = await setUp(showNumbers);
       const items = screen.getByRole('listitem').all();
 
       expect.assertions(chartData.length * 2 + 1);

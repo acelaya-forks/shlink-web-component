@@ -1,9 +1,8 @@
-import { render } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import { rangeOf } from '../../../src/utils/helpers';
 import { LineChartLegend } from '../../../src/visits/charts/LineChartLegend';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import { render } from '../../__helpers__/setUpTest';
 
 describe('<LineChartLegend />', () => {
   const setUp = ({ emptyVisits = false }: { emptyVisits?: boolean } = {}) =>
@@ -25,12 +24,12 @@ describe('<LineChartLegend />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('renders no list when entries are empty', async () => {
-    const { container } = setUp({ emptyVisits: true });
+    const { container } = await setUp({ emptyVisits: true });
     await expect.element(container).toBeEmptyDOMElement();
   });
 
   it('renders every entry with their corresponding amount', async () => {
-    setUp();
+    const screen = await setUp();
 
     expect(screen.getByRole('listitem').all()).toHaveLength(4);
     await Promise.all([
