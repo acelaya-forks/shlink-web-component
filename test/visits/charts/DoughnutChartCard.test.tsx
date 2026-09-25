@@ -1,4 +1,3 @@
-import { page as screen } from 'vitest/browser';
 import { ChartDimensionsProvider } from '../../../src/visits/charts/ChartDimensionsContext';
 import { DoughnutChartCard } from '../../../src/visits/charts/DoughnutChartCard';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -16,7 +15,7 @@ describe('<DoughnutChartCard />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('allows amounts to be toggled from legend', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
     const listItemsBefore = screen.getByRole('listitem').all();
 
     await Promise.all([

@@ -2,7 +2,6 @@ import { Card } from '@shlinkio/shlink-frontend-kit';
 import type { ShlinkVisitsList } from '@shlinkio/shlink-js-sdk/api-contract';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { formatISO } from 'date-fns';
-import { page as screen } from 'vitest/browser';
 import { SettingsProvider } from '../../src/settings';
 import { DomainVisits } from '../../src/visits/DomainVisits';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -34,14 +33,14 @@ describe('<DomainVisits />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('wraps visits stats and header', async () => {
-    setUp();
+    const screen = await setUp();
 
     await expect.element(screen.getByRole('heading', { name: '"foo.com" visits' })).toBeInTheDocument();
     expect(getDomainVisits).toHaveBeenCalledWith('DEFAULT', expect.anything());
   });
 
   it('exports visits when clicking the button', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
     const btn = screen.getByRole('button', { name: 'Export (1)' });
 
     expect(exportVisits).not.toHaveBeenCalled();

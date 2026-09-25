@@ -1,6 +1,5 @@
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import { ContainerProvider } from '../../src/container/context';
 import { SettingsProvider } from '../../src/settings';
 import type { TagsList } from '../../src/tags/reducers/tagsList';
@@ -44,7 +43,7 @@ describe('<TagsList />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('shows a loading message when tags are being loaded', async () => {
-    setUp({ status: 'loading' });
+    const screen = await setUp({ status: 'loading' });
 
     await Promise.all([
       expect.element(screen.getByText('Loading...')).toBeInTheDocument(),
@@ -53,7 +52,7 @@ describe('<TagsList />', () => {
   });
 
   it('shows an error when tags failed to be loaded', async () => {
-    setUp({ status: 'error' });
+    const screen = await setUp({ status: 'error' });
 
     await Promise.all([
       expect.element(screen.getByText('Error loading tags :(')).toBeInTheDocument(),
@@ -62,7 +61,7 @@ describe('<TagsList />', () => {
   });
 
   it('filters tags when search field changes', async () => {
-    const { user, store } = setUp();
+    const { user, store, ...screen } = await setUp();
 
     await user.type(screen.getByPlaceholder('Search...'), 'ba');
     await expect.poll(() => store.getState().tagsList.filteredTags).toEqual(['bar', 'baz']);
@@ -88,7 +87,7 @@ describe('<TagsList />', () => {
       '15',
     ],
   ])('displays proper amount of visits', async (excludeBots, visitsSummary, expectedAmount) => {
-    setUp(
+    const screen = await setUp(
       {
         filteredTags: ['foo', 'bar', 'baz'],
         stats: {

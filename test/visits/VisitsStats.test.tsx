@@ -1,7 +1,6 @@
 import { fromPartial } from '@total-typescript/shoehorn';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { ShlinkVisit } from '../../src/api-contract';
 import type { Domain } from '../../src/domains/data';
 import { DEFAULT_DOMAIN } from '../../src/domains/data';
@@ -28,7 +27,7 @@ describe('<VisitsStats />', () => {
   const visits = rangeOf(3, () => fromPartial<ShlinkVisit>({ date: '2020-01-01' }));
   const getVisitsMock = vi.fn();
   const exportCsv = vi.fn();
-  const setUp = ({
+  const setUp = async ({
     visitsInfo = {},
     activeRoute = '/by-time',
     withDeletion,
@@ -38,38 +37,36 @@ describe('<VisitsStats />', () => {
   }: SetUpOptions = {}) => {
     const history = createMemoryHistory();
     history.push(activeRoute);
+    const renderResult = await renderWithEvents(
+      <Router location={history.location} navigator={history}>
+        <SettingsProvider value={fromPartial(settings)}>
+          <FeaturesProvider value={fromPartial({ filterVisitsByDomain: filterByDomainSupported })}>
+            <ChartDimensionsProvider value={{ width: 800, height: 300 }}>
+              <VisitsStats
+                getVisits={getVisitsMock}
+                visitsInfo={fromPartial({
+                  status: 'loaded',
+                  visits: [],
+                  ...visitsInfo,
+                })}
+                cancelGetVisits={() => {}}
+                exportCsv={exportCsv}
+                deletion={withDeletion ? fromPartial({ visitsDeletion: {} }) : undefined}
+                domains={domains}
+              />
+            </ChartDimensionsProvider>
+          </FeaturesProvider>
+        </SettingsProvider>
+      </Router>,
+    );
 
-    return {
-      history,
-      ...renderWithEvents(
-        <Router location={history.location} navigator={history}>
-          <SettingsProvider value={fromPartial(settings)}>
-            <FeaturesProvider value={fromPartial({ filterVisitsByDomain: filterByDomainSupported })}>
-              <ChartDimensionsProvider value={{ width: 800, height: 300 }}>
-                <VisitsStats
-                  getVisits={getVisitsMock}
-                  visitsInfo={fromPartial({
-                    status: 'loaded',
-                    visits: [],
-                    ...visitsInfo,
-                  })}
-                  cancelGetVisits={() => {}}
-                  exportCsv={exportCsv}
-                  deletion={withDeletion ? fromPartial({ visitsDeletion: {} }) : undefined}
-                  domains={domains}
-                />
-              </ChartDimensionsProvider>
-            </FeaturesProvider>
-          </SettingsProvider>
-        </Router>,
-      ),
-    };
+    return { history, ...renderResult };
   };
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('renders a preloader when visits are loading', async () => {
-    setUp({
+    const screen = await setUp({
       visitsInfo: { status: 'loading', progress: null },
     });
 
@@ -80,7 +77,7 @@ describe('<VisitsStats />', () => {
   });
 
   it('renders a warning and progress bar when loading large amounts of visits', async () => {
-    setUp({
+    const screen = await setUp({
       visitsInfo: { status: 'loading', progress: 25 },
     });
 
@@ -92,14 +89,14 @@ describe('<VisitsStats />', () => {
   });
 
   it('renders an error message when visits could not be loaded', async () => {
-    setUp({
+    const screen = await setUp({
       visitsInfo: { status: 'error', error: fromPartial({}) },
     });
     await expect.element(screen.getByText('An error occurred while loading visits :(')).toBeInTheDocument();
   });
 
   it('renders a message when visits are loaded but the list is empty', async () => {
-    setUp({
+    const screen = await setUp({
       visitsInfo: { visits: [] },
     });
     await expect.element(screen.getByText('There are no visits matching current filter')).toBeInTheDocument();
@@ -112,7 +109,7 @@ describe('<VisitsStats />', () => {
     ['/list', ['Visits list']],
     ['/options', ['Danger zone']],
   ])('renders expected cards per sub-route', async (activeRoute, expectedCards) => {
-    setUp({ visitsInfo: { visits }, activeRoute, withDeletion: true });
+    const screen = await setUp({ visitsInfo: { visits }, activeRoute, withDeletion: true });
 
     await Promise.all(
       expectedCards.map((cardTitle) => expect.element(screen.getByText(new RegExp(cardTitle))).toBeInTheDocument()),
@@ -120,7 +117,7 @@ describe('<VisitsStats />', () => {
   });
 
   it('renders danger zone in options sub-route', async () => {
-    setUp({ visitsInfo: { visits }, activeRoute: '/options', withDeletion: true });
+    const screen = await setUp({ visitsInfo: { visits }, activeRoute: '/options', withDeletion: true });
 
     await Promise.all([
       expect.element(screen.getByText('Danger zone')).toBeInTheDocument(),
@@ -128,8 +125,8 @@ describe('<VisitsStats />', () => {
     ]);
   });
 
-  it('shows the map button on cities chart header', () => {
-    setUp({ visitsInfo: { visits }, activeRoute: '/by-location' });
+  it('shows the map button on cities chart header', async () => {
+    const screen = await setUp({ visitsInfo: { visits }, activeRoute: '/by-location' });
     expect(
       screen
         .getByRole('img', { includeHidden: true })
@@ -151,7 +148,7 @@ describe('<VisitsStats />', () => {
     'displays message when trying to load prev visits and prev interval cannot be calculated',
     async ({ activeRoute, prevVisits, shouldShowMessage }) => {
       const settings = fromPartial<Settings>({ visits: { loadPrevInterval: true } });
-      setUp({ visitsInfo: { visits, prevVisits }, activeRoute, settings });
+      const screen = await setUp({ visitsInfo: { visits, prevVisits }, activeRoute, settings });
 
       if (shouldShowMessage) {
         await expect.element(screen.getByText(/^Could not calculate previous period/)).toBeInTheDocument();
@@ -162,7 +159,7 @@ describe('<VisitsStats />', () => {
   );
 
   it('exports CSV when export btn is clicked', async () => {
-    const { user } = setUp({ visitsInfo: { visits } });
+    const { user, ...screen } = await setUp({ visitsInfo: { visits } });
 
     expect(exportCsv).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: /Export/ }));
@@ -170,7 +167,7 @@ describe('<VisitsStats />', () => {
   });
 
   it('sets filters in query string', async () => {
-    const { history, user } = setUp({ visitsInfo: { visits } });
+    const { history, user, ...screen } = await setUp({ visitsInfo: { visits } });
     const expectSearchContains = (contains: string[]) => {
       expect(contains).not.toHaveLength(0);
       contains.forEach((entry) => expect(history.location.search).toContain(entry));
@@ -197,7 +194,7 @@ describe('<VisitsStats />', () => {
   ])(
     'shows domains filtering control when domains are provided and the feature is supported',
     async ({ domains, filterByDomainSupported }) => {
-      setUp({ domains, filterByDomainSupported });
+      const screen = await setUp({ domains, filterByDomainSupported });
 
       if (domains && filterByDomainSupported) {
         await expect.element(screen.getByRole('button', { name: 'All domains' })).toBeInTheDocument();
@@ -211,7 +208,7 @@ describe('<VisitsStats />', () => {
     { selectedDomain: /^foo/, expectedFilter: DEFAULT_DOMAIN },
     { selectedDomain: 'bar', expectedFilter: 'bar' },
   ])('can change domain to filter by', async ({ selectedDomain, expectedFilter }) => {
-    const { history, user } = setUp({
+    const { history, user, ...screen } = await setUp({
       domains: [fromPartial({ isDefault: true, domain: 'foo' }), fromPartial({ domain: 'bar' })],
       filterByDomainSupported: true,
     });
@@ -231,8 +228,8 @@ describe('<VisitsStats />', () => {
     { loadPrevInterval: undefined, prevVisits: visits },
     { loadPrevInterval: true, prevVisits: visits },
     { loadPrevInterval: false, prevVisits: visits },
-  ])('loads visits when mounted', ({ loadPrevInterval, prevVisits }) => {
-    setUp({
+  ])('loads visits when mounted', async ({ loadPrevInterval, prevVisits }) => {
+    const screen = await setUp({
       visitsInfo: { visits, prevVisits },
       settings: {
         visits: fromPartial({

@@ -1,6 +1,5 @@
 import { fromPartial } from '@total-typescript/shoehorn';
 import { formatISO, subDays, subMonths, subYears } from 'date-fns';
-import { page as screen } from 'vitest/browser';
 import { isBeforeOrEqual } from '../../../src/utils/dates/helpers/date';
 import type { StrictDateRange } from '../../../src/utils/dates/helpers/dateIntervals';
 import { ChartDimensionsProvider } from '../../../src/visits/charts/ChartDimensionsContext';
@@ -29,7 +28,7 @@ describe('<LineChartCard />', () => {
   const asPrevVisits = (visits: NormalizedVisit[]): VisitsList => Object.assign(visits, { type: 'previous' as const });
   const asColoredVisits = (visits: NormalizedVisit[], color: string): VisitsList => Object.assign(visits, { color });
 
-  const setUpChartWithData = () => {
+  const setUpChartWithData = async () => {
     const visitsGroups = {
       foo: asMainVisits([
         fromPartial<NormalizedVisit>({ date: '2023-04-01' }),
@@ -43,7 +42,7 @@ describe('<LineChartCard />', () => {
         fromPartial<NormalizedVisit>({ date: '2024-04-07' }),
       ]),
     };
-    const { container, ...rest } = setUp({ visitsGroups });
+    const { container, ...rest } = await setUp({ visitsGroups });
     const chart = container.querySelector('.recharts-surface');
     if (!chart) {
       throw new Error('Chart element with selector ".recharts-surface" not found');
@@ -65,7 +64,7 @@ describe('<LineChartCard />', () => {
   ])(
     'renders group menu and selects proper grouping item based on visits dates',
     async (visits, expectedActiveIndex) => {
-      const { user } = setUp({
+      const { user, ...screen } = await setUp({
         visitsGroups: { v: asMainVisits(visits.map((visit) => fromPartial(visit))) },
       });
 
@@ -118,8 +117,8 @@ describe('<LineChartCard />', () => {
         ),
       },
     ],
-  ])('renders chart with expected data', (visitsGroups) => {
-    const { container } = setUp({ visitsGroups });
+  ])('renders chart with expected data', async (visitsGroups) => {
+    const { container } = await setUp({ visitsGroups });
     expect(container).toMatchSnapshot();
   });
 
@@ -140,7 +139,7 @@ describe('<LineChartCard />', () => {
     // Right to left
     { selectionStart: 300, selectionEnd: 100 },
   ])('allows date range to be selected via drag and drop', async ({ selectionStart, selectionEnd }) => {
-    const { chart, user } = setUpChartWithData();
+    const { chart, user } = await setUpChartWithData();
 
     // An initial click is needed for subsequent events to receive the proper state from recharts
     // See https://github.com/recharts/recharts/discussions/6178#discussioncomment-14029671
@@ -159,8 +158,8 @@ describe('<LineChartCard />', () => {
 
   it.each([{ button: 1 }, { button: 2 }])(
     'does not select a date range when clicking with a button other than main one',
-    ({ button }) => {
-      const { chart } = setUpChartWithData();
+    async ({ button }) => {
+      const { chart } = await setUpChartWithData();
 
       fireMouseEvent(chart, 'mousedown', { clientX: 100, clientY: 200, button });
       fireMouseEvent(chart, 'mousemove', { clientX: 300, clientY: 200 });
@@ -171,7 +170,7 @@ describe('<LineChartCard />', () => {
   );
 
   it('allows chart to be expanded', async () => {
-    const { user } = setUpChartWithData();
+    const { user, ...screen } = await setUpChartWithData();
     const card = screen.getByTestId('line-chart-card');
 
     await expect.element(card).not.toHaveClass('fixed');
@@ -180,7 +179,7 @@ describe('<LineChartCard />', () => {
   });
 
   it('collapses chart when pressing Escape while expanded', async () => {
-    const { user } = setUpChartWithData();
+    const { user, ...screen } = await setUpChartWithData();
     const card = screen.getByTestId('line-chart-card');
 
     await user.click(screen.getByLabelText('Expand'));

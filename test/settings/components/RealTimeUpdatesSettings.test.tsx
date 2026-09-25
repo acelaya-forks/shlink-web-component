@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { RealTimeUpdatesSettings as RealTimeUpdatesSettingsOptions } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
 import { RealTimeUpdatesSettings } from '../../../src/settings/components/RealTimeUpdatesSettings';
@@ -22,7 +21,7 @@ describe('<RealTimeUpdatesSettings />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('renders enabled real time updates as expected', async () => {
-    setUp({ enabled: true });
+    const screen = await setUp({ enabled: true });
 
     await expect.element(screen.getByLabelText(/^Enable or disable real-time updates./)).toBeChecked();
     await expect.element(screen.getByText(/^Real-time updates are currently being/)).toMatchTextContent('processed');
@@ -39,7 +38,7 @@ describe('<RealTimeUpdatesSettings />', () => {
   });
 
   it('renders disabled real time updates as expected', async () => {
-    setUp({ enabled: false });
+    const screen = await setUp({ enabled: false });
 
     await expect.element(screen.getByLabelText(/^Enable or disable real-time updates./)).not.toBeChecked();
     await expect
@@ -63,7 +62,7 @@ describe('<RealTimeUpdatesSettings />', () => {
     [10, 'minutes'],
     [100, 'minutes'],
   ])('shows expected children when interval is greater than 0', async (interval, minutesWord) => {
-    setUp({ enabled: true, interval });
+    const screen = await setUp({ enabled: true, interval });
 
     await expect
       .element(screen.getByText(/^Updates will be reflected in the UI every/))
@@ -75,7 +74,7 @@ describe('<RealTimeUpdatesSettings />', () => {
   });
 
   it.each([[undefined], [0]])('shows expected children when interval is 0 or undefined', async (interval) => {
-    setUp({ enabled: true, interval });
+    const screen = await setUp({ enabled: true, interval });
 
     await expect.element(screen.getByText(/^Updates will be reflected in the UI every/)).not.toBeInTheDocument();
     await expect
@@ -84,7 +83,7 @@ describe('<RealTimeUpdatesSettings />', () => {
   });
 
   it('updates real time updates when typing on input', async () => {
-    const { user } = setUp({ enabled: true });
+    const { user, ...screen } = await setUp({ enabled: true });
 
     expect(setRealTimeUpdatesInterval).not.toHaveBeenCalled();
     await user.type(screen.getByLabelText('Real-time updates frequency (in minutes):'), '5');
@@ -92,7 +91,7 @@ describe('<RealTimeUpdatesSettings />', () => {
   });
 
   it('toggles real time updates on switch change', async () => {
-    const { user } = setUp({ enabled: true });
+    const { user, ...screen } = await setUp({ enabled: true });
 
     expect(toggleRealTimeUpdates).not.toHaveBeenCalled();
     await user.click(screen.getByText(/^Enable or disable real-time updates./));

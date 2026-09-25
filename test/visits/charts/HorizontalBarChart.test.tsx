@@ -27,8 +27,8 @@ describe('<HorizontalBarChart />', () => {
       { one: 20, two: 500, three: 8 },
     ],
     [{ one: 40, two: 300, three: 35 }, undefined, { one: 20, two: 500, three: 8 }],
-  ])('renders expected charts and tooltip', (stats, highlightedStats, prevStats) => {
-    const { container } = setUp({ stats, highlightedStats, prevStats });
+  ])('renders expected charts and tooltip', async (stats, highlightedStats, prevStats) => {
+    const { container } = await setUp({ stats, highlightedStats, prevStats });
     expect(container).toMatchSnapshot();
   });
 });

@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { ShlinkShortUrl } from '../../../src/api-contract';
 import { ShortUrlVisitsCount } from '../../../src/short-urls/helpers/ShortUrlVisitsCount';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -21,7 +20,7 @@ describe('<ShortUrlVisitsCount />', () => {
 
   it.each([undefined, {}])('just returns visits when no limits are provided', async (meta) => {
     const visitsCount = 45;
-    const { container } = setUp(visitsCount, fromPartial({ meta }));
+    const { container } = await setUp(visitsCount, fromPartial({ meta }));
 
     await expect.element(container.firstChild as HTMLElement).toMatchTextContent(`${visitsCount}`);
     await expect
@@ -33,7 +32,7 @@ describe('<ShortUrlVisitsCount />', () => {
     const visitsCount = 45;
     const maxVisits = 500;
     const meta = { maxVisits };
-    const { container } = setUp(visitsCount, fromPartial({ meta }));
+    const { container } = await setUp(visitsCount, fromPartial({ meta }));
 
     await expect.element(container.firstChild as HTMLElement).toMatchTextContent(`/ ${maxVisits}`);
   });
@@ -59,7 +58,7 @@ describe('<ShortUrlVisitsCount />', () => {
       { validSince: '2023-01-01T10:00:00', validUntil: '2023-05-05T15:30:30', maxVisits: 100 },
     ],
   ])('displays proper amount of tooltip list items', async (expectedListItems, meta) => {
-    const { user } = setUp(100, fromPartial({ meta }));
+    const { user, ...screen } = await setUp(100, fromPartial({ meta }));
 
     await user.hover(screen.getByRole('img', { includeHidden: true }));
     // Wait for list to be fully displayed

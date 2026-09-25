@@ -1,7 +1,6 @@
 import { Card, Table } from '@shlinkio/shlink-frontend-kit';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { ShlinkDomainRedirects } from '../../src/api-contract';
 import type { Domain } from '../../src/domains/data';
 import { DomainRow } from '../../src/domains/DomainRow';
@@ -34,7 +33,7 @@ describe('<DomainRow />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp(fromPartial({ domain: 'domain', isDefault: true }))));
 
   it.each(redirectsCombinations)('shows expected redirects', async (redirects) => {
-    setUp(fromPartial({ domain: '', isDefault: true, redirects }));
+    const screen = await setUp(fromPartial({ domain: '', isDefault: true, redirects }));
 
     if (redirects?.baseUrlRedirect) {
       await expect.element(screen.getByText(redirects.baseUrlRedirect)).toBeInTheDocument();
@@ -50,14 +49,14 @@ describe('<DomainRow />', () => {
   });
 
   it.each([undefined, fromPartial<ShlinkDomainRedirects>({})])('shows expected "no redirects"', async (redirects) => {
-    setUp(fromPartial({ domain: '', isDefault: true, redirects }));
+    const screen = await setUp(fromPartial({ domain: '', isDefault: true, redirects }));
 
     expect(screen.getByText('No redirect').all()).toHaveLength(3);
     await expect.element(screen.getByText('(as fallback)')).not.toBeInTheDocument();
   });
 
   it.each(redirectsCombinations)('shows expected fallback redirects', async (fallbackRedirects) => {
-    setUp(fromPartial({ domain: '', isDefault: true }), fallbackRedirects);
+    const screen = await setUp(fromPartial({ domain: '', isDefault: true }), fallbackRedirects);
 
     if (fallbackRedirects?.baseUrlRedirect) {
       await expect.element(screen.getByText(`${fallbackRedirects.baseUrlRedirect} (as fallback)`)).toBeInTheDocument();
@@ -75,7 +74,7 @@ describe('<DomainRow />', () => {
   });
 
   it.each([true, false])('shows icon on default domain only', async (isDefault) => {
-    setUp(fromPartial({ domain: '', isDefault }));
+    const screen = await setUp(fromPartial({ domain: '', isDefault }));
 
     if (isDefault) {
       await expect.element(screen.getByTestId('default-domain-icon')).toBeInTheDocument();

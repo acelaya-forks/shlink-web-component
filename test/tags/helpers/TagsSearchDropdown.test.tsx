@@ -1,4 +1,3 @@
-import { page as screen } from 'vitest/browser';
 import { TagsSearchDropdown } from '../../../src/tags/helpers/TagsSearchDropdown';
 import { checkAccessibility } from '../../__helpers__/accessibility';
 import { renderWithEvents } from '../../__helpers__/setUpTest';
@@ -20,10 +19,10 @@ describe('<TagsSearchDropdown />', () => {
       />,
     );
   const setUpOpened = async (selectedTags?: string[]) => {
-    const { user, ...rest } = setUp(selectedTags);
+    const { user, ...screen } = await setUp(selectedTags);
     await user.click(screen.getByRole('button'));
 
-    return { user, ...rest };
+    return { user, ...screen };
   };
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
@@ -34,7 +33,7 @@ describe('<TagsSearchDropdown />', () => {
     { selectedTags: ['foo', 'bar'], expectedContent: 'Including 2 tags' },
     { selectedTags: ['foo', 'bar', 'baz'], expectedContent: 'Including 3 tags' },
   ])('displays expected button content based on selected tags', async ({ selectedTags, expectedContent }) => {
-    setUp(selectedTags);
+    const screen = await setUp(selectedTags);
     await expect.element(screen.getByRole('button')).toHaveTextContent(expectedContent);
   });
 
@@ -44,7 +43,7 @@ describe('<TagsSearchDropdown />', () => {
     { selectedTags: ['foo', 'bar'] },
     { selectedTags: ['foo', 'bar', 'baz'] },
   ])('renders list of selected tags', async ({ selectedTags }) => {
-    await setUpOpened(selectedTags);
+    const screen = await setUpOpened(selectedTags);
 
     if (selectedTags.length === 0) {
       await expect.element(screen.getByRole('list')).not.toBeInTheDocument();
@@ -55,7 +54,7 @@ describe('<TagsSearchDropdown />', () => {
   });
 
   it('can remove individual selected tags by closing them', async () => {
-    const { user } = await setUpOpened();
+    const { user, ...screen } = await setUpOpened();
 
     await user.click(screen.getByLabelText('Remove foo'));
     expect(onTagsChange).toHaveBeenLastCalledWith(['bar']);
@@ -64,14 +63,14 @@ describe('<TagsSearchDropdown />', () => {
   });
 
   it('can remove all selected tags at once via clear button', async () => {
-    const { user } = await setUpOpened();
+    const { user, ...screen } = await setUpOpened();
 
     await user.click(screen.getByRole('button', { name: 'Clear tags' }));
     expect(onTagsChange).toHaveBeenLastCalledWith([]);
   });
 
   it('dispatches `Escape` keydown when tags are cleared', async () => {
-    const { user, container } = await setUpOpened();
+    const { user, container, ...screen } = await setUpOpened();
     const listener = vi.fn();
 
     container.addEventListener('keydown', listener);
@@ -81,7 +80,7 @@ describe('<TagsSearchDropdown />', () => {
   });
 
   it.each(['bar', 'baz'])('can add new tags by selecting from search results', async (selectedOption) => {
-    const { user } = await setUpOpened([]);
+    const { user, ...screen } = await setUpOpened([]);
 
     await user.type(screen.getByPlaceholder('Search...'), 'ba');
     // Search results are displayed with a delay. Wait for them
@@ -95,7 +94,7 @@ describe('<TagsSearchDropdown />', () => {
   it.each(['ba', 'noresults'])(
     'stops keydown propagation when `Escape` is pressed in search while results are displayed',
     async (searchTerm) => {
-      const { user, container } = await setUpOpened([]);
+      const { user, container, ...screen } = await setUpOpened([]);
 
       await user.type(screen.getByPlaceholder('Search...'), searchTerm);
       // Search results are displayed with a delay. Wait for them
@@ -110,7 +109,7 @@ describe('<TagsSearchDropdown />', () => {
   );
 
   it('does not stop keydown propagation when `Escape` is pressed in search if no results are displayed', async () => {
-    const { user, container } = await setUpOpened([]);
+    const { user, container, ...screen } = await setUpOpened([]);
 
     const listener = vi.fn();
     container.addEventListener('keydown', listener);
@@ -125,7 +124,7 @@ describe('<TagsSearchDropdown />', () => {
     { button: 'All', expectedMode: 'all' },
     { button: 'Any', expectedMode: 'any' },
   ])('chan change the tags mode', async ({ button, expectedMode }) => {
-    const { user } = await setUpOpened();
+    const { user, ...screen } = await setUpOpened();
 
     await user.click(screen.getByRole('button', { name: button }));
 

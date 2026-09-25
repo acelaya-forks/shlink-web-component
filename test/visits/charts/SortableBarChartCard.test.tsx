@@ -1,6 +1,5 @@
 import { range } from '@shlinkio/data-manipulation';
 import type { ReactNode } from 'react';
-import { page as screen } from 'vitest/browser';
 import { SortableBarChartCard } from '../../../src/visits/charts/SortableBarChartCard';
 import type { Stats } from '../../../src/visits/types';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -39,7 +38,7 @@ describe('<SortableBarChartCard />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it.each(['Name', 'Amount'])('renders properly ordered stats when ordering is set', async (orderField) => {
-    const { user, container } = setUp();
+    const { user, container, ...screen } = await setUp();
     const checkCoordinates = () => {
       const spans = Array.from(container.querySelectorAll('tspan'));
       const fooY = spans.find((span) => span.textContent === 'Foo')?.parentElement?.getAttribute('y');
@@ -75,7 +74,7 @@ describe('<SortableBarChartCard />', () => {
     [3, 0],
     ['Clear pagination', 0],
   ])('renders properly paginated stats when pagination is set', async (itemIndex, expectedPages) => {
-    const { user } = setUp({
+    const { user, ...screen } = await setUp({
       withPagination: true,
       extraStats: range(1, 200).reduce<Stats>((accum, value) => {
         accum[`key_${value}`] = value;
@@ -105,8 +104,8 @@ describe('<SortableBarChartCard />', () => {
     { withHighlights: true, withPrev: false, expectedRectangles: 2 },
     { withHighlights: false, withPrev: true, expectedRectangles: 2 },
     { withHighlights: false, withPrev: false, expectedRectangles: 1 },
-  ])('renders highlighted and prev stats when provided', ({ withHighlights, withPrev, expectedRectangles }) => {
-    const { container } = setUp({
+  ])('renders highlighted and prev stats when provided', async ({ withHighlights, withPrev, expectedRectangles }) => {
+    const { container } = await setUp({
       highlightedStats: withHighlights
         ? {
             Foo: 25,
@@ -126,7 +125,7 @@ describe('<SortableBarChartCard />', () => {
   });
 
   it('renders extra header content', async () => {
-    setUp({
+    const screen = await setUp({
       extra: () => (
         <span>
           <span>Foo in header</span>

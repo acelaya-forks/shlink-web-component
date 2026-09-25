@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { QrCodeSettings } from '../../../../src/settings';
 import { defaultQrCodeSettings, SettingsProvider } from '../../../../src/settings';
 import { QrCodeSizeSettings } from '../../../../src/settings/components/qr-codes/QrCodeSizeSettings';
@@ -30,20 +29,22 @@ describe('<QrCodeSizeSettings />', () => {
       expectedMargin: 20,
     },
   ])('shows hints with expected sizes', async ({ settings, expectedSize, expectedMargin }) => {
-    setUp(settings);
+    const screen = await setUp(settings);
 
-    await expect.element(screen.getByTestId('size')).toHaveTextContent(`${expectedSize}x${expectedSize}px`);
-    await expect.element(screen.getByLabelText('Default dimensions:')).toHaveValue(`${expectedSize}`);
-    await expect.element(screen.getByTestId('margin')).toHaveTextContent(`${expectedMargin}px`);
-    await expect.element(screen.getByLabelText('Default margin:')).toHaveValue(`${expectedMargin}`);
+    await Promise.all([
+      expect.element(screen.getByTestId('size')).toHaveTextContent(`${expectedSize}x${expectedSize}px`),
+      expect.element(screen.getByLabelText('Default dimensions:')).toHaveValue(`${expectedSize}`),
+      expect.element(screen.getByTestId('margin')).toHaveTextContent(`${expectedMargin}px`),
+      expect.element(screen.getByLabelText('Default margin:')).toHaveValue(`${expectedMargin}`),
+    ]);
   });
 
-  it('can change sizes via range inputs', () => {
+  it('can change sizes via range inputs', async () => {
     const settings = fromPartial<QrCodeSettings>({
       size: 800,
       margin: 35,
     });
-    setUp(settings);
+    const screen = await setUp(settings);
 
     expect(onChange).not.toHaveBeenCalled();
 

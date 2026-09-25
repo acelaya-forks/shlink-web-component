@@ -1,14 +1,12 @@
 import type { ShlinkVisitsList } from '@shlinkio/shlink-js-sdk/api-contract';
-import { cleanup } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { ShlinkShortUrlIdentifier } from '../../../src/api-contract';
 import { DEFAULT_DOMAIN } from '../../../src/domains/data';
 import { queryToShortUrl, shortUrlToQuery } from '../../../src/short-urls/helpers';
 import { ShortUrlVisitsComparison } from '../../../src/visits/visits-comparison/ShortUrlVisitsComparison';
 import { checkAccessibility } from '../../__helpers__/accessibility';
-import { renderWithStore } from '../../__helpers__/setUpTest';
+import { cleanup, renderWithStore } from '../../__helpers__/setUpTest';
 
 type SetUpOptions = {
   shortUrls?: ShlinkShortUrlIdentifier[];
@@ -45,19 +43,19 @@ describe('<ShortUrlVisitsComparison />', () => {
     [[queryToShortUrl(`${DEFAULT_DOMAIN}__foo`)]],
     [[queryToShortUrl(`${DEFAULT_DOMAIN}__foo`), queryToShortUrl(`${DEFAULT_DOMAIN}__bar`)]],
     [[queryToShortUrl('s.test__baz'), queryToShortUrl('s.test__something'), queryToShortUrl('s.test__whatever')]],
-  ])('loads short URLs on mount', (shortUrls) => {
-    setUp({ shortUrls });
+  ])('loads short URLs on mount', async (shortUrls) => {
+    await setUp({ shortUrls });
 
     expect(getShortUrlVisits).toHaveBeenCalledTimes(shortUrls.length);
     expect(getShortUrl).toHaveBeenCalledTimes(shortUrls.length);
   });
 
-  it('cancels loading visits when unmounted', () => {
-    const { store } = setUp();
+  it('cancels loading visits when unmounted', async () => {
+    const { store } = await setUp();
     const isCanceled = () => store.getState().shortUrlVisitsComparison.status === 'canceled';
 
     expect(isCanceled()).toBe(false);
-    cleanup();
+    await cleanup();
     expect(isCanceled()).toBe(true);
   });
 
@@ -66,12 +64,12 @@ describe('<ShortUrlVisitsComparison />', () => {
     [[queryToShortUrl(`${DEFAULT_DOMAIN}__foo`), queryToShortUrl(`${DEFAULT_DOMAIN}__bar`)]],
     [[queryToShortUrl('s.test__baz'), queryToShortUrl('s.test__something'), queryToShortUrl('s.test__whatever')]],
   ])('renders short URLs in title', async (shortUrls) => {
-    setUp({ shortUrls });
+    const screen = await setUp({ shortUrls });
     await expect.element(screen.getByTestId('title')).toMatchTextContent(`Comparing ${shortUrls.length} short URLs`);
   });
 
   it('renders global loading if visits and details are loading', async () => {
-    setUp({ loading: true });
+    const screen = await setUp({ loading: true });
     await expect.element(screen.getByTestId('title')).toHaveTextContent('Loading...');
   });
 });

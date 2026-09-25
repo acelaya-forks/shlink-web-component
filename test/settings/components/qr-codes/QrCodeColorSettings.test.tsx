@@ -1,16 +1,15 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { QrCodeSettings } from '../../../../src/settings';
 import { defaultQrCodeSettings, SettingsProvider } from '../../../../src/settings';
 import { QrCodeColorSettings } from '../../../../src/settings/components/qr-codes/QrCodeColorSettings';
 import { checkAccessibility } from '../../../__helpers__/accessibility';
 import { setNativeInputValue } from '../../../__helpers__/input';
-import { renderWithEvents } from '../../../__helpers__/setUpTest';
+import { render } from '../../../__helpers__/setUpTest';
 
 describe('<QrCodeColorSettings />', () => {
   const onChange = vi.fn();
   const setUp = (qrCodeSettings?: QrCodeSettings) =>
-    renderWithEvents(
+    render(
       <SettingsProvider value={{ qrCodes: qrCodeSettings }}>
         <QrCodeColorSettings onChange={onChange} />
       </SettingsProvider>,
@@ -30,20 +29,22 @@ describe('<QrCodeColorSettings />', () => {
       expectedBgColor: '#00ff00',
     },
   ])('shows hints with expected colors', async ({ settings, expectedColor, expectedBgColor }) => {
-    setUp(settings);
+    const screen = await setUp(settings);
 
-    await expect.element(screen.getByTestId('color')).toHaveTextContent(expectedColor);
-    await expect.element(screen.getByLabelText('Default color:')).toHaveValue(expectedColor);
-    await expect.element(screen.getByTestId('bg-color')).toHaveTextContent(expectedBgColor);
-    await expect.element(screen.getByLabelText('Default background color:')).toHaveValue(expectedBgColor);
+    await Promise.all([
+      expect.element(screen.getByTestId('color')).toHaveTextContent(expectedColor),
+      expect.element(screen.getByLabelText('Default color:')).toHaveValue(expectedColor),
+      expect.element(screen.getByTestId('bg-color')).toHaveTextContent(expectedBgColor),
+      expect.element(screen.getByLabelText('Default background color:')).toHaveValue(expectedBgColor),
+    ]);
   });
 
-  it('can change colors via color pickers', () => {
+  it('can change colors via color pickers', async () => {
     const settings = fromPartial<QrCodeSettings>({
       color: '#ff0000',
       bgColor: '#0000ff',
     });
-    setUp(settings);
+    const screen = await setUp(settings);
 
     expect(onChange).not.toHaveBeenCalled();
 

@@ -1,6 +1,5 @@
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import { ContainerProvider } from '../../src/container/context';
 import { TagsTable } from '../../src/tags/TagsTable';
 import { rangeOf } from '../../src/utils/helpers';
@@ -27,7 +26,7 @@ describe('<TagsTable />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('renders empty result if there are no tags', async () => {
-    setUp();
+    const screen = await setUp();
 
     await Promise.all([
       expect.element(screen.getByText(/^TagsTableRow/)).not.toBeInTheDocument(),
@@ -43,7 +42,7 @@ describe('<TagsTable />', () => {
     [tags(30), 20],
     [tags(100), 20],
   ])('renders as many rows as there are in current page', async (filteredTags, expectedRows) => {
-    setUp(filteredTags);
+    const screen = await setUp(filteredTags);
 
     expect(screen.getByRole('row').all()).toHaveLength(expectedRows);
     await expect.element(screen.getByText('No results found')).not.toBeInTheDocument();
@@ -57,7 +56,7 @@ describe('<TagsTable />', () => {
     [tags(30), true],
     [tags(100), true],
   ])('renders paginator if there are more than one page', async (filteredTags, shouldRenderPaginator) => {
-    setUp(filteredTags);
+    const screen = await setUp(filteredTags);
 
     if (shouldRenderPaginator) {
       await expect.element(screen.getByTestId('tags-paginator')).toBeInTheDocument();
@@ -74,7 +73,7 @@ describe('<TagsTable />', () => {
     [5, 7, 80],
     [6, 0, 0],
   ])('renders page from query if present', async (page, expectedRows, offset) => {
-    setUp(tags(87), `page=${page}`);
+    const screen = await setUp(tags(87), `page=${page}`);
 
     const tagRows = screen.getByRole('row').all();
 
@@ -87,7 +86,7 @@ describe('<TagsTable />', () => {
   });
 
   it('allows changing current page in paginator', async () => {
-    const { user, container } = setUp(tags(100));
+    const { user, container, ...screen } = await setUp(tags(100));
 
     await expect.element(container.querySelector('[data-active="true"]') as HTMLElement).toHaveTextContent('1');
     await user.click(screen.getByText('5'));
@@ -96,7 +95,7 @@ describe('<TagsTable />', () => {
 
   // FIXME This test does not work because of the browser resolution. The headers that are clicked are not visible
   it.skip('orders tags when column is clicked', async () => {
-    const { user } = setUp(tags(100));
+    const { user, ...screen } = await setUp(tags(100));
     const headers = screen.getByRole('columnheader', { includeHidden: true }).all();
 
     expect(orderByColumn).not.toHaveBeenCalled();

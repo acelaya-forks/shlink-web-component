@@ -1,4 +1,3 @@
-import { page as screen } from 'vitest/browser';
 import type { DomainStatus } from '../../../src/domains/data';
 import { DomainStatusIcon } from '../../../src/domains/helpers/DomainStatusIcon';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -15,13 +14,13 @@ describe('<DomainStatusIcon />', () => {
     ['validating' as const, 'circle-notch'],
     ['invalid' as const, 'xmark'],
     ['valid' as const, 'check'],
-  ])('renders expected icon and tooltip when status is not validating', (status, expectedIcon) => {
-    setUp(status);
+  ])('renders expected icon and tooltip when status is not validating', async (status, expectedIcon) => {
+    const screen = await setUp(status);
     expect(screen.getByRole('img', { includeHidden: true })).toHaveAttribute('data-icon', expectedIcon);
   });
 
   it.each([['invalid' as const], ['valid' as const]])('renders proper tooltip based on state', async (status) => {
-    const { user } = setUp(status);
+    const { user, ...screen } = await setUp(status);
 
     await user.hover(screen.getByRole('img', { includeHidden: true }));
     await screen.getByRole('tooltip').findElement();

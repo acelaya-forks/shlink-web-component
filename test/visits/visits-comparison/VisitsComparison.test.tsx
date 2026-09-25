@@ -1,12 +1,10 @@
 import type { ShlinkVisit } from '@shlinkio/shlink-js-sdk/api-contract';
-import { cleanup } from '@testing-library/react';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { LoadVisitsForComparison } from '../../../src/visits/visits-comparison/reducers/types';
 import { VisitsComparison } from '../../../src/visits/visits-comparison/VisitsComparison';
 import { checkAccessibility } from '../../__helpers__/accessibility';
-import { renderWithEvents } from '../../__helpers__/setUpTest';
+import { cleanup, renderWithEvents } from '../../__helpers__/setUpTest';
 
 type SetUpOptions = {
   loading?: boolean;
@@ -37,7 +35,7 @@ describe('<VisitsComparison />', () => {
   ])('passes a11y checks', (options) => checkAccessibility(setUp(options)));
 
   it('disables filtering controls when loading', async () => {
-    setUp({ loading: true });
+    const screen = await setUp({ loading: true });
 
     await Promise.all([
       expect.element(screen.getByRole('button', { name: 'Last 30 days' })).toBeDisabled(),
@@ -46,7 +44,7 @@ describe('<VisitsComparison />', () => {
   });
 
   it.each([[true], [false]])('does not display chart when loading', async (loading) => {
-    setUp({ loading, visitsGroups: { foo: [visit] } });
+    const screen = await setUp({ loading, visitsGroups: { foo: [visit] } });
 
     if (loading) {
       await expect.element(screen.getByText(/Visits over time/)).not.toBeInTheDocument();
@@ -58,7 +56,7 @@ describe('<VisitsComparison />', () => {
   it.each([[{}], [{ foo: [] }], [{ foo: [], bar: [], baz: [] }]])(
     'shows fallback when all visits groups are empty',
     async (visitsGroups) => {
-      setUp({ loading: false, visitsGroups });
+      const screen = await setUp({ loading: false, visitsGroups });
 
       await Promise.all([
         expect.element(screen.getByText('Visits over time')).not.toBeInTheDocument(),
@@ -68,7 +66,7 @@ describe('<VisitsComparison />', () => {
   );
 
   it('loads visits every time filters change', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
     const getLastCallParams = (): LoadVisitsForComparison => getVisitsForComparison.mock.lastCall?.[0];
 
     // First call when the component is mounted
@@ -90,11 +88,11 @@ describe('<VisitsComparison />', () => {
     expect(secondCallParams.filter?.excludeBots).toEqual(true);
   });
 
-  it('cancels loading visits when unmounted', () => {
-    setUp();
+  it('cancels loading visits when unmounted', async () => {
+    await setUp();
 
-    expect(cancelGetVisitsComparison).not.toHaveBeenCalled();
-    cleanup();
     expect(cancelGetVisitsComparison).toHaveBeenCalledOnce();
+    await cleanup();
+    expect(cancelGetVisitsComparison).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import { ContainerProvider } from '../../../src/container/context';
 import { EditTagModal } from '../../../src/tags/helpers/EditTagModal';
 import type { TagEdition } from '../../../src/tags/reducers/tagEdit';
@@ -28,7 +27,7 @@ describe('<EditTagModal />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('allows modal to be closed with different mechanisms', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     expect(onClose).not.toHaveBeenCalled();
 
@@ -43,17 +42,17 @@ describe('<EditTagModal />', () => {
     [true, 'Saving...'],
     [false, 'Save'],
   ])('renders submit button in expected state', async (editing, name) => {
-    setUp({ status: editing ? 'editing' : 'idle' });
+    const screen = await setUp({ status: editing ? 'editing' : 'idle' });
     await expect.element(screen.getByRole('button', { name })).toBeInTheDocument();
   });
 
   it('displays error result in case of error', async () => {
-    setUp({ status: 'error', error: fromPartial({}) });
+    const screen = await setUp({ status: 'error', error: fromPartial({}) });
     await expect.element(screen.getByText('Something went wrong while editing the tag :(')).toBeInTheDocument();
   });
 
   it('updates tag value when text changes', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
     const getInput = () => screen.getByPlaceholder('Tag');
 
     await expect.element(getInput()).toHaveValue('foo');
@@ -63,7 +62,7 @@ describe('<EditTagModal />', () => {
   });
 
   it('invokes all functions on form submit', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     expect(editTag).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();

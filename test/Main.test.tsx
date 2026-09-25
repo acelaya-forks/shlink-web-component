@@ -1,5 +1,4 @@
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import { ShlinkSidebarVisibilityProvider } from '../src';
 import type { MainProps } from '../src/Main';
 import { Main } from '../src/Main';
@@ -65,19 +64,19 @@ describe('<Main />', () => {
     ['/domains/compare-visits', 'DomainVisitsComparison'],
     ['/short-urls/compare-visits', 'ShortUrlVisitsComparison'],
   ])('renders expected component based on location and server version', async (currentPath, expectedContent) => {
-    setUp({ currentPath });
+    const screen = await setUp({ currentPath });
     await expect.element(screen.getByText(expectedContent)).toBeInTheDocument();
   });
 
   it('renders not-found when trying to navigate to invalid route', async () => {
     const createNotFound = () => <>Oops! Route not found.</>;
-    setUp({ currentPath: '/foo/bar/baz', createNotFound });
+    const screen = await setUp({ currentPath: '/foo/bar/baz', createNotFound });
 
     await expect.element(screen.getByText('Oops! Route not found.')).toBeInTheDocument();
   });
 
   it.each([true, false])('can decide whether to render a toggle button or not', async (autoToggleButton) => {
-    setUp({ autoToggleButton });
+    const screen = await setUp({ autoToggleButton });
 
     if (autoToggleButton) {
       await expect.element(screen.getByLabelText('Toggle sidebar')).toBeInTheDocument();

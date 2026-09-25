@@ -1,7 +1,5 @@
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
-import type { UserEvent } from 'vitest/browser';
 import type { Domain } from '../../../src/domains/data';
 import { DEFAULT_DOMAIN } from '../../../src/domains/data';
 import { DomainDropdown } from '../../../src/domains/helpers/DomainDropdown';
@@ -10,6 +8,7 @@ import { RoutesPrefixProvider } from '../../../src/utils/routesPrefix';
 import type { VisitsComparison } from '../../../src/visits/visits-comparison/VisitsComparisonContext';
 import { VisitsComparisonProvider } from '../../../src/visits/visits-comparison/VisitsComparisonContext';
 import { checkAccessibility } from '../../__helpers__/accessibility';
+import type { RenderWithEventsResult} from '../../__helpers__/setUpTest';
 import { renderWithStore } from '../../__helpers__/setUpTest';
 
 type SetUpOptions = {
@@ -34,7 +33,7 @@ describe('<DomainDropdown />', () => {
       </MemoryRouter>,
     );
 
-  const openMenu = async (user: UserEvent) => {
+  const openMenu = async ({ user, ...screen }: RenderWithEventsResult) => {
     // Search by "Options" name, as that's the default aria-label
     await user.click(screen.getByRole('button', { name: 'Options' }));
   };
@@ -43,10 +42,10 @@ describe('<DomainDropdown />', () => {
     [setUp],
     [
       async () => {
-        const { user, container } = setUp({ visitsComparison: { itemsToCompare: [] } });
-        await openMenu(user);
+        const result = await setUp({ visitsComparison: { itemsToCompare: [] } });
+        await openMenu(result);
 
-        return { container };
+        return result;
       },
     ],
   ])('passes a11y checks', (setUp) => checkAccessibility(setUp()));
@@ -54,8 +53,8 @@ describe('<DomainDropdown />', () => {
   it.each([{ filterShortUrlsByDomain: true }, { filterShortUrlsByDomain: false }])(
     'renders expected menu items',
     async ({ filterShortUrlsByDomain }) => {
-      const { user } = setUp({ filterShortUrlsByDomain });
-      await openMenu(user);
+      const screen = await setUp({ filterShortUrlsByDomain });
+      await openMenu(screen);
 
       await expect.element(screen.getByText('Visit stats')).toBeInTheDocument();
       await expect.element(screen.getByText('Compare visits')).toBeInTheDocument();
@@ -73,8 +72,8 @@ describe('<DomainDropdown />', () => {
     [true, '_DEFAULT'],
     [false, ''],
   ])('points visits link to the proper section', async (isDefault, expectedLink) => {
-    const { user } = setUp({ domain: fromPartial({ domain: 'foo.com', isDefault }) });
-    await openMenu(user);
+    const screen = await setUp({ domain: fromPartial({ domain: 'foo.com', isDefault }) });
+    await openMenu(screen);
 
     await expect
       .element(screen.getByText('Visit stats'))
@@ -85,8 +84,8 @@ describe('<DomainDropdown />', () => {
     [true, DEFAULT_DOMAIN],
     [false, 'foo.com'],
   ])('points short URLs link to the proper section', async (isDefault, expectedLink) => {
-    const { user } = setUp({ domain: fromPartial({ domain: 'foo.com', isDefault }) });
-    await openMenu(user);
+    const screen = await setUp({ domain: fromPartial({ domain: 'foo.com', isDefault }) });
+    await openMenu(screen);
 
     await expect
       .element(screen.getByText('Short URLs'))
@@ -94,29 +93,29 @@ describe('<DomainDropdown />', () => {
   });
 
   it.each([['foo.com'], ['bar.org'], ['baz.net']])('displays modal when editing redirects', async (domain) => {
-    const { user } = setUp({ domain: fromPartial({ domain, isDefault: false }) });
+    const { user, ...screen } = await setUp({ domain: fromPartial({ domain, isDefault: false }) });
 
     await expect.element(screen.getByRole('dialog')).not.toBeInTheDocument();
     await expect.element(screen.getByRole('form')).not.toBeInTheDocument();
-    await openMenu(user);
+    await openMenu({ user, ...screen });
 
     await user.click(screen.getByText('Edit redirects'));
     await expect.element(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   it('displays dropdown when clicked', async () => {
-    const { user } = setUp();
+    const screen = await setUp();
 
     await expect.element(screen.getByRole('menu')).not.toBeInTheDocument();
-    await openMenu(user);
+    await openMenu(screen);
     await expect.element(screen.getByRole('menu')).toBeInTheDocument();
   });
 
   it.each([[undefined], [{ itemsToCompare: [{ name: 's.test', query: '' }], canAddItemWithName: () => false }]])(
     'disables compare visits item when it cannot be added',
     async (visitsComparison) => {
-      const { user } = setUp({ visitsComparison, domain: fromPartial({ domain: 's.test' }) });
-      await openMenu(user);
+      const screen = await setUp({ visitsComparison, domain: fromPartial({ domain: 's.test' }) });
+      await openMenu(screen);
 
       await expect.element(screen.getByRole('menuitem', { name: 'Compare visits' })).toBeDisabled();
     },
@@ -126,9 +125,9 @@ describe('<DomainDropdown />', () => {
     const addItemToCompare = vi.fn();
     const visitsComparison: Partial<VisitsComparison> = { itemsToCompare: [], addItemToCompare };
     const domain = 's.test';
-    const { user } = setUp({ visitsComparison, domain: fromPartial({ domain }) });
+    const { user, ...screen } = await setUp({ visitsComparison, domain: fromPartial({ domain }) });
 
-    await openMenu(user);
+    await openMenu({ user, ...screen });
     const item = screen.getByRole('menuitem', { name: 'Compare visits' });
 
     await expect.element(item).not.toHaveAttribute('disabled');

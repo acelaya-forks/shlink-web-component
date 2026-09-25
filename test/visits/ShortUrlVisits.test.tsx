@@ -4,7 +4,6 @@ import { fromPartial } from '@total-typescript/shoehorn';
 import { formatISO } from 'date-fns';
 import { MemoryRouter } from 'react-router';
 import { now } from 'tinybench';
-import { page as screen } from 'vitest/browser';
 import { SettingsProvider } from '../../src/settings';
 import { ShortUrlVisits } from '../../src/visits/ShortUrlVisits';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -17,7 +16,7 @@ describe('<ShortUrlVisits />', () => {
     pagination: { pagesCount: 1, totalItems: 1, currentPage: 1 },
   } satisfies ShlinkVisitsList);
   const setUp = async () => {
-    const renderResult = renderWithStore(
+    const screen = await renderWithStore(
       <MemoryRouter>
         <SettingsProvider value={fromPartial({})}>
           {/* Wrap in Card so that it has the proper background color and passes a11y contrast checks */}
@@ -44,20 +43,20 @@ describe('<ShortUrlVisits />', () => {
     // Wait for loading to finish
     await expect.element(screen.getByText('Loading...')).not.toBeInTheDocument();
 
-    return renderResult;
+    return screen;
   };
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('wraps visits stats and header', async () => {
-    await setUp();
+    const screen = await setUp();
 
     await expect.element(screen.getByRole('heading').first()).toMatchTextContent('Visits for');
     expect(getShortUrlVisits).toHaveBeenCalled();
   });
 
   it('exports visits when clicking the button', async () => {
-    const { user } = await setUp();
+    const { user, ...screen } = await setUp();
 
     expect(exportVisits).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Export (1)' }));

@@ -1,42 +1,40 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { ShortUrlsOrderableFields } from '../../src/short-urls/data';
 import { SHORT_URLS_ORDERABLE_FIELDS } from '../../src/short-urls/data';
 import type { ShortUrlsList } from '../../src/short-urls/reducers/shortUrlsList';
 import { ShortUrlsTable } from '../../src/short-urls/ShortUrlsTable';
 import { checkAccessibility } from '../__helpers__/accessibility';
-import { renderWithEvents } from '../__helpers__/setUpTest';
+import { render } from '../__helpers__/setUpTest';
 
 describe('<ShortUrlsTable />', () => {
   const shortUrlsList = fromPartial<ShortUrlsList>({});
   const orderByColumn = vi.fn();
-  const setUp = () =>
-    renderWithEvents(<ShortUrlsTable shortUrlsList={shortUrlsList} orderByColumn={() => orderByColumn} />);
+  const setUp = () => render(<ShortUrlsTable shortUrlsList={shortUrlsList} orderByColumn={() => orderByColumn} />);
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('should render inner table by default', async () => {
-    setUp();
+    const screen = await setUp();
     await expect.element(screen.getByRole('table')).toBeInTheDocument();
   });
 
-  it('should render row groups by default', () => {
-    setUp();
+  it('should render row groups by default', async () => {
+    const screen = await setUp();
     expect(screen.getByRole('rowgroup').all()).toHaveLength(1);
   });
 
-  it('should render expected amount of table header cells', () => {
-    setUp();
+  it('should render expected amount of table header cells', async () => {
+    const screen = await setUp();
     expect(screen.getByRole('columnheader', { includeHidden: true }).all()).toHaveLength(6);
   });
 
   it('should render table header cells without "order by" icon by default', async () => {
-    setUp();
+    const screen = await setUp();
     await expect.element(screen.getByRole('img', { includeHidden: true })).not.toBeInTheDocument();
   });
 
   it('should render table header cells with conditional order by icon', async () => {
-    setUp();
+    const screen = await setUp();
 
     const getThElementForSortableField = (orderableField: string) =>
       screen
@@ -59,8 +57,8 @@ describe('<ShortUrlsTable />', () => {
     });
   });
 
-  it('should render composed title column', () => {
-    setUp();
+  it('should render composed title column', async () => {
+    const screen = await setUp();
 
     const { innerHTML } = screen.getByRole('columnheader', { includeHidden: true }).elements()[2];
 

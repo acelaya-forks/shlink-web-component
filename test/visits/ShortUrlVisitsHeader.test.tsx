@@ -2,7 +2,6 @@ import type { ShlinkShortUrl } from '@shlinkio/shlink-js-sdk/api-contract';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { formatDistance, parseISO } from 'date-fns';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { ShortUrlVisits } from '../../src/visits/reducers/shortUrlVisits';
 import { ShortUrlVisitsHeader } from '../../src/visits/ShortUrlVisitsHeader';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -33,7 +32,7 @@ describe('<ShortUrlVisitsHeader />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('shows when the URL was created', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
     const dateElement = screen.getByText(`${formatDistance(new Date(), parseISO(dateCreated))} ago`);
 
     await Promise.all([
@@ -49,7 +48,7 @@ describe('<ShortUrlVisitsHeader />', () => {
     [undefined, `Long URL: ${longUrl}`],
     ['My cool title', 'Title: My cool title'],
   ])('shows the long URL and title', async (title, expectedContent) => {
-    setUp(title);
+    const screen = await setUp(title);
 
     await Promise.all([
       expect.element(screen.getByTestId('long-url-container')).toMatchTextContent(expectedContent),

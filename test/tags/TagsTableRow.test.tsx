@@ -1,13 +1,12 @@
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
-import type { UserEvent } from 'vitest/browser';
 import { ContainerProvider } from '../../src/container/context';
 import { TagsTableRow } from '../../src/tags/TagsTableRow';
 import { RoutesPrefixProvider } from '../../src/utils/routesPrefix';
 import type { VisitsComparison } from '../../src/visits/visits-comparison/VisitsComparisonContext';
 import { VisitsComparisonProvider } from '../../src/visits/visits-comparison/VisitsComparisonContext';
 import { checkAccessibility } from '../__helpers__/accessibility';
+import type { RenderWithEventsResult} from '../__helpers__/setUpTest';
 import { renderWithStore } from '../__helpers__/setUpTest';
 import { colorGeneratorMock } from '../utils/services/__mocks__/ColorGenerator.mock';
 
@@ -38,7 +37,7 @@ describe('<TagsTableRow />', () => {
       </MemoryRouter>,
     );
 
-  const clickMenuItem = async (user: UserEvent, name: string) => {
+  const clickMenuItem = async ({ user, ...screen }: RenderWithEventsResult, name: string) => {
     await user.click(screen.getByRole('button'));
     await user.click(screen.getByRole('menuitem', { name }));
   };
@@ -49,7 +48,7 @@ describe('<TagsTableRow />', () => {
     [undefined, '0', '0'],
     [{ shortUrls: 10, visits: 3480 }, '10', '3,480'],
   ])('shows expected tag stats', async (stats, expectedShortUrls, expectedVisits) => {
-    setUp(stats);
+    const screen = await setUp(stats);
 
     const [shortUrlsLink, visitsLink] = screen.getByRole('link').all();
 
@@ -64,7 +63,7 @@ describe('<TagsTableRow />', () => {
   });
 
   it('allows toggling dropdown menu', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     await expect.element(screen.getByRole('menu')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button'));
@@ -72,14 +71,14 @@ describe('<TagsTableRow />', () => {
   });
 
   it('allows toggling edit modal', async () => {
-    const { user } = setUp();
+    const screen = await setUp();
 
     await Promise.all([
       expect.element(screen.getByRole('dialog')).not.toBeInTheDocument(),
       expect.element(screen.getByRole('heading', { name: 'Edit tag' })).not.toBeInTheDocument(),
     ]);
 
-    await clickMenuItem(user, 'Edit');
+    await clickMenuItem(screen, 'Edit');
 
     await Promise.all([
       expect.element(screen.getByRole('dialog')).toBeInTheDocument(),
@@ -88,14 +87,14 @@ describe('<TagsTableRow />', () => {
   });
 
   it('allows toggling delete modal', async () => {
-    const { user } = setUp();
+    const screen = await setUp();
 
     await Promise.all([
       expect.element(screen.getByRole('dialog')).not.toBeInTheDocument(),
       expect.element(screen.getByRole('heading', { name: 'Delete tag' })).not.toBeInTheDocument(),
     ]);
 
-    await clickMenuItem(user, 'Delete tag');
+    await clickMenuItem(screen, 'Delete tag');
 
     await Promise.all([
       expect.element(screen.getByRole('dialog')).toBeInTheDocument(),
@@ -106,7 +105,7 @@ describe('<TagsTableRow />', () => {
   it.each([[undefined], [{ itemsToCompare: [{ name: tag, query: '' }], canAddItemWithName: () => false }]])(
     'has disabled visits comparison menu item when context is not provided or tag is already selected',
     async (visitsComparison) => {
-      const { user } = setUp({ visitsComparison });
+      const { user, ...screen } = await setUp({ visitsComparison });
       await user.click(screen.getByRole('button'));
 
       await expect.element(screen.getByRole('menuitem', { name: 'Compare visits' })).toHaveAttribute('disabled');
@@ -116,9 +115,9 @@ describe('<TagsTableRow />', () => {
   it('can add tags to compare visits', async () => {
     const addItemToCompare = vi.fn();
     const visitsComparison: Partial<VisitsComparison> = { itemsToCompare: [], addItemToCompare };
-    const { user } = setUp({ visitsComparison });
+    const screen = await setUp({ visitsComparison });
 
-    await clickMenuItem(user, 'Compare visits');
+    await clickMenuItem(screen, 'Compare visits');
 
     expect(addItemToCompare).toHaveBeenCalledWith(
       expect.objectContaining({

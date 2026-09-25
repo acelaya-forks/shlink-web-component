@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { TagFilteringMode } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
 import { TagsSelector } from '../../../src/tags/helpers/TagsSelector';
@@ -35,7 +34,7 @@ describe('<TagsSelector />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('has an input for tags', async () => {
-    setUp();
+    const screen = await setUp();
     await expect.element(screen.getByPlaceholder('Add tags to the URL')).toBeInTheDocument();
   });
 
@@ -44,7 +43,7 @@ describe('<TagsSelector />', () => {
     ['AnOTH   er  tag  ', [...tags, 'anoth-er-tag']],
     ['foo', tags], // Already added tags should be ignored
   ])('invokes onChange when new tags are added', async (newTag, expectedTags) => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     expect(onChange).not.toHaveBeenCalled();
     await user.type(screen.getByPlaceholder('Add tags to the URL'), newTag);

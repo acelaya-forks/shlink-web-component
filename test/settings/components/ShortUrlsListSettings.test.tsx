@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { ShortUrlsListSettings as ShortUrlsSettings } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
 import { ShortUrlsListSettings } from '../../../src/settings/components/ShortUrlsListSettings';
@@ -27,7 +26,7 @@ describe('<ShortUrlsListSettings />', () => {
     ],
     [fromPartial<ShortUrlsSettings>({ defaultOrdering: { field: 'visits', dir: 'ASC' } }), 'Order by: Visits - ASC'],
   ])('shows expected ordering', async (shortUrlsList, expectedOrder) => {
-    setUp(shortUrlsList);
+    const screen = await setUp(shortUrlsList);
     await expect.element(screen.getByRole('button')).toMatchTextContent(expectedOrder);
   });
 
@@ -37,7 +36,7 @@ describe('<ShortUrlsListSettings />', () => {
     ['Visits', 'visits', 'ASC'],
     ['Title', 'title', 'ASC'],
   ])('invokes setSettings when ordering changes', async (name, field, dir) => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     expect(setSettings).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button'));
@@ -52,7 +51,7 @@ describe('<ShortUrlsListSettings />', () => {
   ])('Deletion confirmation switch has proper initial state', async (shortUrlCreation, expectedChecked) => {
     const matcher = /^Request confirmation before deleting a short URL./;
 
-    setUp(shortUrlCreation);
+    const screen = await setUp(shortUrlCreation);
 
     const checkbox = screen.getByLabelText(matcher);
     const helpText = screen.getByTestId('help-text');
@@ -75,7 +74,7 @@ describe('<ShortUrlsListSettings />', () => {
   it.each([{ confirmDeletions: true }, { confirmDeletions: false }])(
     'invokes setSettings when delete confirmation toggle value changes',
     async ({ confirmDeletions }) => {
-      const { user } = setUp({ confirmDeletions });
+      const { user, ...screen } = await setUp({ confirmDeletions });
 
       expect(setSettings).not.toHaveBeenCalled();
       await user.click(screen.getByLabelText(/^Request confirmation before deleting a short URL./));

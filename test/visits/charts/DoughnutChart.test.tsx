@@ -1,4 +1,3 @@
-import { page as screen } from 'vitest/browser';
 import { ChartDimensionsProvider } from '../../../src/visits/charts/ChartDimensionsContext';
 import { DoughnutChart } from '../../../src/visits/charts/DoughnutChart';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -17,14 +16,14 @@ describe('<DoughnutChart />', () => {
 
   it.each([[{}], [{ foo: 300, baz: 33 }], [{ ...stats, baz: 20 }]])(
     'renders Doughnut with expected props',
-    (prevStats) => {
-      const { container } = setUp(prevStats);
+    async (prevStats) => {
+      const { container } = await setUp(prevStats);
       expect(container).toMatchSnapshot();
     },
   );
 
   it('renders expected legend', async () => {
-    setUp();
+    const screen = await setUp();
 
     await Promise.all([
       expect.element(screen.getByText(/foo/)).toBeInTheDocument(),

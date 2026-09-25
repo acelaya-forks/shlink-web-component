@@ -2,7 +2,6 @@ import { Card, Table } from '@shlinkio/shlink-frontend-kit';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { addDays, formatISO, subDays } from 'date-fns';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { ShlinkShortUrl, ShlinkShortUrlMeta } from '../../../src/api-contract';
 import type { Settings } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
@@ -70,13 +69,13 @@ describe('<ShortUrlsRow />', () => {
     [null, 7],
     [undefined, 7],
     ['The title', 8],
-  ])('renders expected amount of columns', (title, expectedAmount) => {
-    setUp({ title });
+  ])('renders expected amount of columns', async (title, expectedAmount) => {
+    const screen = await setUp({ title });
     expect(screen.getByRole('cell').all()).toHaveLength(expectedAmount);
   });
 
   it('renders date in first column', async () => {
-    setUp();
+    const screen = await setUp();
     await expect.element(screen.getByRole('cell').first()).toMatchTextContent('2018-05-23 18:30');
   });
 
@@ -84,7 +83,7 @@ describe('<ShortUrlsRow />', () => {
     [1, shortUrl.shortUrl],
     [2, shortUrl.longUrl],
   ])('renders expected links on corresponding columns', async (colIndex, expectedLink) => {
-    setUp();
+    const screen = await setUp();
 
     const col = screen.getByRole('cell').elements()[colIndex];
     const link = col.querySelector('a');
@@ -96,7 +95,7 @@ describe('<ShortUrlsRow />', () => {
     ['My super cool title', 'My super cool title'],
     [undefined, shortUrl.longUrl],
   ])('renders title when short URL has it', async (title, expectedContent) => {
-    setUp({ title });
+    const screen = await setUp({ title });
 
     const titleSharedCol = screen.getByRole('cell').elements()[2];
 
@@ -111,7 +110,7 @@ describe('<ShortUrlsRow />', () => {
       ['nodejs', 'reactjs'],
     ],
   ])('renders list of tags in fourth row', async (tags, expectedContents) => {
-    setUp({ tags });
+    const screen = await setUp({ tags });
     const cell = screen.getByRole('cell').all()[3];
 
     await Promise.all(expectedContents.map((content) => expect.element(cell).toMatchTextContent(content)));
@@ -128,7 +127,7 @@ describe('<ShortUrlsRow />', () => {
     [fromPartial<Settings>({ visits: { excludeBots: false } }), 'excludeBots=false', shortUrl.visitsSummary?.total],
     [{}, 'excludeBots=false', shortUrl.visitsSummary?.total],
   ])('renders visits count in fifth row', async (settings, search, expectedAmount) => {
-    setUp({ settings, search });
+    const screen = await setUp({ settings, search });
     await expect
       .element(screen.getByRole('cell', { includeHidden: true }).all()[4])
       .toMatchTextContent(`${expectedAmount}`);
@@ -150,7 +149,7 @@ describe('<ShortUrlsRow />', () => {
     [{ maxVisits: 500 }, ['fa-check', 'text-lm-brand dark:text-dm-brand']],
     [{}, ['fa-check', 'text-lm-brand dark:text-dm-brand']],
   ])('displays expected status icon', async (meta, expectedIconClasses) => {
-    setUp({ meta });
+    const screen = await setUp({ meta });
     const statusIcon = screen.getByTestId('status-icon');
 
     await expect.element(statusIcon).toBeInTheDocument();
@@ -163,7 +162,7 @@ describe('<ShortUrlsRow />', () => {
   it.each([{ hasRedirectRules: true }, { hasRedirectRules: false }])(
     'shows indicator when a short URL has redirect rules',
     async ({ hasRedirectRules }) => {
-      setUp({ hasRedirectRules });
+      const screen = await setUp({ hasRedirectRules });
 
       if (hasRedirectRules) {
         await expect.element(screen.getByTitle('This short URL has dynamic redirect rules')).toBeInTheDocument();

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { page as screen } from 'vitest/browser';
 import { useVisitsComparison } from '../../../src/visits/visits-comparison/VisitsComparisonContext';
 import { renderWithEvents } from '../../__helpers__/setUpTest';
 
@@ -58,7 +57,7 @@ describe('useVisitsComparison', () => {
   const setUp = () => renderWithEvents(<FakeComponent />);
 
   it('can handle items to compare', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     expect(screen.getByRole('listitem')).not.toBeInTheDocument();
 

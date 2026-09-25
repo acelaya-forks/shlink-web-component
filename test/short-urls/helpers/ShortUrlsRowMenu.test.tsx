@@ -1,6 +1,5 @@
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { ShlinkShortUrl } from '../../../src/api-contract';
 import type { ShortUrlsListSettings } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
@@ -37,10 +36,10 @@ describe('<ShortUrlsRowMenu />', () => {
       },
     );
   const setUpAndOpen = async (options: SetUpOptions = {}) => {
-    const result = setUp(options);
-    await result.user.click(screen.getByRole('button'));
+    const { user, ...screen } = await setUp(options);
+    await user.click(screen.getByRole('button'));
 
-    return result;
+    return { user, ...screen };
   };
 
   it.each([
@@ -58,7 +57,7 @@ describe('<ShortUrlsRowMenu />', () => {
     [undefined, 5],
     [{ itemsToCompare: [] }, 6],
   ])('renders correct amount of menu items', async (visitsComparison, expectedMenuItems) => {
-    await setUpAndOpen({ visitsComparison });
+    const screen = await setUpAndOpen({ visitsComparison });
     expect(screen.getByRole('menuitem').all()).toHaveLength(expectedMenuItems);
   });
 
@@ -66,7 +65,7 @@ describe('<ShortUrlsRowMenu />', () => {
     [{ name: shortUrl.shortUrl }, false],
     [{ name: 'something else' }, true],
   ])('disables visits comparison menu if short URL is already selected', async (visitToCompare, canAddItem) => {
-    await setUpAndOpen({
+    const screen = await setUpAndOpen({
       visitsComparison: fromPartial({
         itemsToCompare: [visitToCompare],
         canAddItemWithName: () => canAddItem,
@@ -83,7 +82,7 @@ describe('<ShortUrlsRowMenu />', () => {
 
   it('adds visit to compare when clicked', async () => {
     const addVisitToCompare = vi.fn();
-    const { user } = await setUpAndOpen({
+    const { user, ...screen } = await setUpAndOpen({
       visitsComparison: {
         itemsToCompare: [],
         addItemToCompare: addVisitToCompare,
@@ -117,7 +116,7 @@ describe('<ShortUrlsRowMenu />', () => {
   ])(
     'directly deletes short URL if confirmation is disabled',
     async ({ shortUrlsListSettings, shouldRequestConfirmation }) => {
-      const { user } = await setUpAndOpen({ shortUrlsListSettings });
+      const { user, ...screen } = await setUpAndOpen({ shortUrlsListSettings });
 
       await user.click(screen.getByRole('menuitem', { name: 'Delete short URL' }));
 

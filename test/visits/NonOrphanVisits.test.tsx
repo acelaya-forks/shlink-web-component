@@ -3,7 +3,6 @@ import type { ShlinkVisitsList } from '@shlinkio/shlink-js-sdk/api-contract';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { formatISO } from 'date-fns';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import { SettingsProvider } from '../../src/settings';
 import { NonOrphanVisits } from '../../src/visits/NonOrphanVisits';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -34,14 +33,14 @@ describe('<NonOrphanVisits />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('wraps visits stats and header', async () => {
-    setUp();
+    const screen = await setUp();
 
     await expect.element(screen.getByRole('heading', { name: 'Non-orphan visits' })).toBeInTheDocument();
     expect(getNonOrphanVisits).toHaveBeenCalled();
   });
 
   it('exports visits when clicking the button', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
     const btn = screen.getByRole('button', { name: 'Export (1)' });
 
     expect(exportVisits).not.toHaveBeenCalled();

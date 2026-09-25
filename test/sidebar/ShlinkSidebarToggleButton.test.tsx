@@ -1,4 +1,3 @@
-import { page as screen } from 'vitest/browser';
 import { ShlinkSidebarToggleButton, ShlinkSidebarVisibilityProvider } from '../../src';
 import { useSidebarVisibility } from '../../src/sidebar/ShlinkSidebarVisibilityProvider';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -30,7 +29,7 @@ describe('<ShlinkSidebarToggleButton />', () => {
   });
 
   it('toggles visibility when clicked', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     expect(currentVisibility).toBe(false);
     await user.click(screen.getByLabelText('Toggle sidebar'));

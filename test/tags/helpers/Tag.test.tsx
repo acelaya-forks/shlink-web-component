@@ -1,7 +1,6 @@
 import { brandColor } from '@shlinkio/shlink-frontend-kit';
 import { fromPartial } from '@total-typescript/shoehorn';
 import type { ReactNode } from 'react';
-import { page as screen } from 'vitest/browser';
 import { Tag } from '../../../src/tags/helpers/Tag';
 import type { ColorGenerator } from '../../../src/utils/services/ColorGenerator';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -29,7 +28,7 @@ describe('<Tag />', () => {
     async (backgroundColor) => {
       stylesForKey.mockReturnValue({ backgroundColor });
 
-      const { container } = setUp('foo');
+      const { container } = await setUp('foo');
       const { r, g, b } = hexToRgb(backgroundColor);
 
       await expect
@@ -39,7 +38,7 @@ describe('<Tag />', () => {
   );
 
   it.each([[true], [false]])('invokes expected callbacks when appropriate events are triggered', async (clearable) => {
-    const { user } = setUp('foo', clearable);
+    const { user, ...screen } = await setUp('foo', clearable);
 
     expect(onClick).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
@@ -62,7 +61,7 @@ describe('<Tag />', () => {
   ])(
     'includes a close component when the tag is clearable',
     async (clearable, expectedCloseBtnAmount, expectedPointer) => {
-      const { container } = setUp('foo', clearable);
+      const { container, ...screen } = await setUp('foo', clearable);
 
       expect(screen.getByLabelText(/^Remove/).all()).toHaveLength(expectedCloseBtnAmount);
       if (expectedPointer) {
@@ -77,7 +76,7 @@ describe('<Tag />', () => {
     [undefined, 'foo'],
     ['bar', 'bar'],
   ])('falls back to text as children when no children are provided', async (children, expectedChildren) => {
-    const { container } = setUp('foo', false, children);
+    const { container } = await setUp('foo', false, children);
     await expect.element(container.firstChild as HTMLElement).toHaveTextContent(expectedChildren);
   });
 });

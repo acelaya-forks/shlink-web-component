@@ -1,6 +1,5 @@
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { ProblemDetailsError } from '../../src/api-contract';
 import type { Domain } from '../../src/domains/data';
 import { ManageDomains } from '../../src/domains/ManageDomains';
@@ -10,7 +9,7 @@ import { renderWithStore } from '../__helpers__/setUpTest';
 
 describe('<ManageDomains />', () => {
   const setUp = async (domainsList: Partial<DomainsList> = {}) => {
-    const renderResult = renderWithStore(
+    const screen = await renderWithStore(
       <MemoryRouter>
         <ManageDomains />
       </MemoryRouter>,
@@ -25,13 +24,13 @@ describe('<ManageDomains />', () => {
     // Wait for all domains to finish their health checks
     await expect.element(screen.getByTestId('domain-health-loader')).not.toBeInTheDocument();
 
-    return renderResult;
+    return screen;
   };
 
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('shows loading message while domains are loading', async () => {
-    await setUp({ status: 'loading' });
+    const screen = await setUp({ status: 'loading' });
 
     await expect.element(screen.getByText('Loading...')).toBeInTheDocument();
     await expect.element(screen.getByText('Error loading domains :(')).not.toBeInTheDocument();
@@ -42,7 +41,7 @@ describe('<ManageDomains />', () => {
     [fromPartial<ProblemDetailsError>({}), 'Error loading domains :('],
     [fromPartial<ProblemDetailsError>({ detail: 'Foo error!!' }), 'Foo error!!'],
   ])('shows error result when domains loading fails', async (error, expectedErrorMessage) => {
-    await setUp({ status: 'error', error });
+    const screen = await setUp({ status: 'error', error });
 
     await expect.element(screen.getByText('Loading...')).not.toBeInTheDocument();
     await expect.element(screen.getByText(expectedErrorMessage)).toBeInTheDocument();
@@ -54,7 +53,7 @@ describe('<ManageDomains />', () => {
       fromPartial({ domain: 'bar' }),
       fromPartial({ domain: 'baz' }),
     ];
-    const { user } = await setUp(
+    const { user, ...screen } = await setUp(
       fromPartial({
         status: 'idle',
         domains,
@@ -68,7 +67,7 @@ describe('<ManageDomains />', () => {
   });
 
   it('shows expected headers and one row when list of domains is empty', async () => {
-    await setUp();
+    const screen = await setUp();
 
     expect(
       screen
@@ -87,7 +86,7 @@ describe('<ManageDomains />', () => {
       fromPartial({ domain: 'bar' }),
       fromPartial({ domain: 'baz' }),
     ];
-    await setUp({ filteredDomains });
+    const screen = await setUp({ filteredDomains });
 
     expect(screen.getByRole('row').all()).toHaveLength(filteredDomains.length);
     await expect.element(screen.getByText('foo')).toBeInTheDocument();

@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { DateRangeSelectorProps } from '../../../src/utils/dates/DateRangeSelector';
 import { DateRangeSelector } from '../../../src/utils/dates/DateRangeSelector';
 import type { DateInterval } from '../../../src/utils/dates/helpers/dateIntervals';
@@ -8,7 +7,7 @@ import { renderWithEvents } from '../../__helpers__/setUpTest';
 describe('<DateRangeSelector />', () => {
   const onDatesChange = vi.fn();
   const setUp = async (props: Partial<DateRangeSelectorProps> = {}) => {
-    const result = renderWithEvents(
+    const { user, ...screen } = await renderWithEvents(
       <DateRangeSelector
         {...fromPartial<DateRangeSelectorProps>(props)}
         defaultText="Default text"
@@ -16,15 +15,15 @@ describe('<DateRangeSelector />', () => {
       />,
     );
 
-    await result.user.click(screen.getByRole('button'));
+    await user.click(screen.getByRole('button'));
     // Wait for menu to be displayed
     await screen.getByRole('menu').findElement();
 
-    return result;
+    return { user, ...screen };
   };
 
   it('renders proper amount of items', async () => {
-    await setUp();
+    const screen = await setUp();
     expect(screen.getByRole('menuitem').all()).toHaveLength(8);
   });
 
@@ -45,7 +44,7 @@ describe('<DateRangeSelector />', () => {
   });
 
   it('triggers onDatesChange callback when selecting an element', async () => {
-    const { user } = await setUp();
+    const { user, ...screen } = await setUp();
 
     await user.type(screen.getByLabelText('Since:'), '2020-01-01');
     await user.type(screen.getByLabelText('Until:'), '2022-01-01');
@@ -55,7 +54,7 @@ describe('<DateRangeSelector />', () => {
   });
 
   it('propagates default text to DateIntervalDropdownItems', async () => {
-    await setUp();
+    const screen = await setUp();
     expect(screen.getByText('Default text').all()).toHaveLength(2);
   });
 });

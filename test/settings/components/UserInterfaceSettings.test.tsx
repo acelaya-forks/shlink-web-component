@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { UiSettings } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
 import { UserInterfaceSettings } from '../../../src/settings/components/UserInterfaceSettings';
@@ -28,7 +27,7 @@ describe('<UserInterfaceSettings />', () => {
     [undefined, false, false],
     [undefined, true, true],
   ])('toggles switch if theme is dark', async (ui, defaultDarkTheme, expectedChecked) => {
-    setUp(ui, defaultDarkTheme);
+    const screen = await setUp(ui, defaultDarkTheme);
 
     if (expectedChecked) {
       await expect.element(screen.getByLabelText('Use dark theme.')).toBeChecked();
@@ -39,8 +38,8 @@ describe('<UserInterfaceSettings />', () => {
 
   it.each([[{ theme: 'dark' as const }], [{ theme: 'light' as const }], [undefined]])(
     'shows different icons based on theme',
-    (ui) => {
-      setUp(ui);
+    async (ui) => {
+      const screen = await setUp(ui);
       expect(screen.getByRole('img', { includeHidden: true }).element()).toMatchSnapshot();
     },
   );
@@ -49,7 +48,7 @@ describe('<UserInterfaceSettings />', () => {
     ['light' as const, 'dark' as const],
     ['dark' as const, 'light' as const],
   ])('invokes setUiSettings when theme toggle value changes', async (initialTheme, expectedTheme) => {
-    const { user } = setUp({ theme: initialTheme });
+    const { user, ...screen } = await setUp({ theme: initialTheme });
 
     expect(setUiSettings).not.toHaveBeenCalled();
     await user.click(screen.getByLabelText('Use dark theme.'));

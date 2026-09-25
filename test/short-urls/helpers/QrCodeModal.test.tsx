@@ -1,10 +1,9 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
-import type { UserEvent } from 'vitest/browser';
 import { SettingsProvider } from '../../../src/settings';
 import { QrCodeModal } from '../../../src/short-urls/helpers/QrCodeModal';
 import { checkAccessibility } from '../../__helpers__/accessibility';
 import { setNativeInputValue } from '../../__helpers__/input';
+import type { RenderWithEventsResult } from '../../__helpers__/setUpTest';
 import { renderWithEvents } from '../../__helpers__/setUpTest';
 
 describe('<QrCodeModal />', () => {
@@ -24,7 +23,7 @@ describe('<QrCodeModal />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('shows an external link to the URL in the header', async () => {
-    setUp();
+    const screen = await setUp();
     const externalLink = screen.getByRole('heading').element().querySelector('a');
 
     await expect.element(externalLink).toBeInTheDocument();
@@ -35,10 +34,10 @@ describe('<QrCodeModal />', () => {
   // FIXME Snapshots do not match when run in CI, because it generate some slightly off coordinates.
   //       I Need to investigate why.
   it.skipIf(import.meta.env.CI).each([
-    { applyChanges: () => {} },
+    { applyChanges: async () => {} },
     {
       // Setting size and margin
-      applyChanges: () => {
+      applyChanges: async (screen: RenderWithEventsResult) => {
         const [sizeInput, marginInput] = screen.getByRole('slider').all();
         if (!sizeInput || !marginInput) {
           throw new Error('Sliders not found');
@@ -50,21 +49,21 @@ describe('<QrCodeModal />', () => {
     },
     {
       // Select error correction
-      applyChanges: async (user: UserEvent) => {
+      applyChanges: async ({ user, ...screen }: RenderWithEventsResult) => {
         await user.click(screen.getByRole('button', { name: /^Error correction/ }));
         await user.click(screen.getByRole('menuitem', { name: /uartile/ }));
       },
     },
     {
       // Set custom colors
-      applyChanges: () => {
+      applyChanges: async (screen: RenderWithEventsResult) => {
         setNativeInputValue(screen.getByLabelText('color picker').element() as HTMLInputElement, '#ff0000');
         setNativeInputValue(screen.getByLabelText('background picker').element() as HTMLInputElement, '#0000ff');
       },
     },
     {
       // Set custom logo
-      applyChanges: async (user: UserEvent) => {
+      applyChanges: async ({ user, ...screen }: RenderWithEventsResult) => {
         const byteCharacters = atob(
           'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII',
         );
@@ -76,15 +75,15 @@ describe('<QrCodeModal />', () => {
       },
     },
   ])('displays an image with expected configuration', async ({ applyChanges }) => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
-    await applyChanges(user);
+    await applyChanges({ user, ...screen });
     expect(screen.getByTestId('qr-code-container').element()).toMatchSnapshot();
   });
 
   it.each(['logo.png', 'some-image.svg', 'whatever.jpg'])('allows logo to be seat and cleared', async (logoName) => {
     const logo = new File([''], logoName, { type: 'image/svg' });
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     // At first, we can select a logo
     await expect.element(screen.getByRole('button', { name: 'Select logo' })).toBeInTheDocument();
@@ -107,12 +106,12 @@ describe('<QrCodeModal />', () => {
 
   // FIXME This test needs some investigation
   it.skip('saves the QR code image when clicking the Download button', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
     await user.click(screen.getByRole('button', { name: /^Download/ }));
   });
 
   it.each(['png', 'svg', 'jpeg', 'webp'])('copies the QR data URI when clicking the Copy button', async (format) => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
     const writeText = vi.fn().mockResolvedValue(undefined);
 
     vi.stubGlobal('navigator', {

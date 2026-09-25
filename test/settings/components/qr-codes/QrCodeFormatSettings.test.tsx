@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { QrCodeSettings } from '../../../../src/settings';
 import { defaultQrCodeSettings, SettingsProvider } from '../../../../src/settings';
 import { QrCodeFormatSettings } from '../../../../src/settings/components/qr-codes/QrCodeFormatSettings';
@@ -29,7 +28,7 @@ describe('<QrCodeFormatSettings />', () => {
       expectedErrorCorrection: 'Q',
     },
   ])('shows hints with expected colors', async ({ settings, expectedFormat, expectedErrorCorrection }) => {
-    setUp(settings);
+    const screen = await setUp(settings);
 
     await expect.element(screen.getByTestId('format')).toHaveTextContent(expectedFormat);
     await expect.element(screen.getByRole('button', { name: `Format (${expectedFormat})` })).toBeInTheDocument();
@@ -44,7 +43,7 @@ describe('<QrCodeFormatSettings />', () => {
       format: 'svg',
       errorCorrection: 'Q',
     });
-    const { user } = setUp(settings);
+    const { user, ...screen } = await setUp(settings);
 
     expect(onChange).not.toHaveBeenCalled();
 

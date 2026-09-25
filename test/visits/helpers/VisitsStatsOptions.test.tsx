@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import { VisitsStatsOptions } from '../../../src/visits/helpers/VisitsStatsOptions';
 import { checkAccessibility } from '../../__helpers__/accessibility';
 import { renderWithEvents } from '../../__helpers__/setUpTest';
@@ -17,7 +16,7 @@ describe('<VisitsStatsOptions />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('deletes visits after clicking twice', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     await user.click(screen.getByRole('button', { name: 'Delete visits' }));
     expect(deleteVisits).not.toHaveBeenCalled();
@@ -28,7 +27,7 @@ describe('<VisitsStatsOptions />', () => {
   });
 
   it('displays loading state while deleting visits is in progress', async () => {
-    const { user } = setUp(true);
+    const { user, ...screen } = await setUp(true);
     await user.click(screen.getByRole('button', { name: 'Delete visits' }));
 
     await expect.element(screen.getByRole('button', { name: 'Deleting...' })).toHaveAttribute('disabled');

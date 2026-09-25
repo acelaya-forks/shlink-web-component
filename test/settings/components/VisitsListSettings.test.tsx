@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { Settings } from '../../../src/settings';
 import { defaultVisitsListColumns, SettingsProvider } from '../../../src/settings';
 import { visitsListColumns, VisitsListSettings } from '../../../src/settings/components/VisitsListSettings';
@@ -18,7 +17,7 @@ describe('<VisitsListSettings />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('renders expected list of controls', async () => {
-    setUp();
+    const screen = await setUp();
 
     const items = Object.entries(visitsListColumns);
 
@@ -29,7 +28,7 @@ describe('<VisitsListSettings />', () => {
   });
 
   it('changes enabled columns when a toggle is clicked', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     await user.click(screen.getByLabelText('City'));
     expect(setVisitsSettings).toHaveBeenLastCalledWith(
@@ -43,7 +42,7 @@ describe('<VisitsListSettings />', () => {
   });
 
   it('changes excluded columns when a column with exclussions is toggled', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     await user.click(screen.getByLabelText(/^User agent/));
     expect(setVisitsSettings).toHaveBeenLastCalledWith(

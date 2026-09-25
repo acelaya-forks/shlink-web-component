@@ -1,6 +1,5 @@
 import { fromPartial } from '@total-typescript/shoehorn';
 import { MemoryRouter } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import type { ShlinkShortUrl } from '../../../src/api-contract';
 import { ExportShortUrlsBtn } from '../../../src/short-urls/helpers/ExportShortUrlsBtn';
 import type { ReportExporter } from '../../../src/utils/services/ReportExporter';
@@ -29,7 +28,7 @@ describe('<ExportShortUrlsBtn />', () => {
     [1, '1'],
     [4578, '4,578'],
   ])('renders expected amount', async (amount, expectedAmount) => {
-    setUp(amount);
+    const screen = await setUp(amount);
     await expect.element(screen.getByText(/Export/)).toHaveTextContent(`Export (${expectedAmount})`);
   });
 
@@ -42,7 +41,7 @@ describe('<ExportShortUrlsBtn />', () => {
     [385, 20],
   ])('loads proper amount of pages based on the amount of results', async (amount, expectedPageLoads) => {
     listShortUrls.mockResolvedValue({ data: [] });
-    const { user } = setUp(amount);
+    const { user, ...screen } = await setUp(amount);
 
     await user.click(screen.getByRole('button'));
 
@@ -60,7 +59,7 @@ describe('<ExportShortUrlsBtn />', () => {
         }),
       ],
     });
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     await user.click(screen.getByRole('button'));
 

@@ -1,6 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
-import type { UserEvent } from 'vitest/browser';
 import type { VisitsListSettings } from '../../src/settings';
 import { defaultVisitsListColumns, SettingsProvider } from '../../src/settings';
 import { rangeOf } from '../../src/utils/helpers';
@@ -8,6 +6,7 @@ import type { NormalizedRegularVisit, NormalizedVisit } from '../../src/visits/t
 import type { VisitsTableProps } from '../../src/visits/VisitsTable';
 import { VisitsTable } from '../../src/visits/VisitsTable';
 import { checkAccessibility } from '../__helpers__/accessibility';
+import type { RenderWithEventsResult } from '../__helpers__/setUpTest';
 import { renderWithEvents } from '../__helpers__/setUpTest';
 
 type SetUpOptions = Partial<VisitsTableProps> & {
@@ -33,26 +32,27 @@ describe('<VisitsTable />', () => {
     });
   const setUpWithSettings = (visitsList: VisitsListSettings) => setUpFactory({ visitsList });
 
-  const getFirstColumnValue = () => screen.getByRole('row').elements()[2]?.querySelectorAll('td')[3]?.textContent;
-  const clickColumn = async (user: UserEvent, index: number) =>
+  const getFirstColumnValue = (screen: RenderWithEventsResult) =>
+    screen.getByRole('row').elements()[2]?.querySelectorAll('td')[3]?.textContent;
+  const clickColumn = async ({ user, ...screen }: RenderWithEventsResult, index: number) =>
     user.click(screen.getByRole('columnheader').all()[index]);
 
   it('passes a11y checks', () => checkAccessibility(setUpWithBots()));
 
-  it('renders expected amount of columns', () => {
-    setUp();
+  it('renders expected amount of columns', async () => {
+    const screen = await setUp();
     expect(screen.getByRole('columnheader').all()).toHaveLength(10);
   });
 
   it('shows warning when no visits are found', async () => {
-    setUp();
+    const screen = await setUp();
     await expect.element(screen.getByText('There are no visits matching current filter')).toBeInTheDocument();
   });
 
   it.each(rangeOf(20, (value) => [value]))(
     'does not render footer when there is only one page to render',
     async (visitsCount) => {
-      const { container } = setUp(
+      const { container, ...screen } = await setUp(
         rangeOf(visitsCount, () => fromPartial<NormalizedVisit>({ browser: '', date: '2022-01-01', referer: '' })),
       );
 
@@ -65,7 +65,7 @@ describe('<VisitsTable />', () => {
 
   it('selected rows are highlighted', async () => {
     const visits = rangeOf(10, () => fromPartial<NormalizedVisit>({ browser: '', date: '2022-01-01', referer: '' }));
-    const { container, user } = setUp(visits, [visits[1], visits[2]]);
+    const { container, user, ...screen } = await setUp(visits, [visits[1], visits[2]]);
 
     // Initial situation
     expect(container.querySelectorAll('.bg-lm-table-highlight')).toHaveLength(2);
@@ -84,7 +84,7 @@ describe('<VisitsTable />', () => {
   });
 
   it('orders visits when column is clicked', async () => {
-    const { user } = setUp(
+    const screen = await setUp(
       rangeOf(9, (index) =>
         fromPartial<NormalizedVisit>({
           browser: '',
@@ -95,19 +95,19 @@ describe('<VisitsTable />', () => {
       ),
     );
 
-    expect(getFirstColumnValue()).toContain('Country_1');
-    await clickColumn(user, 2); // Date column ASC
-    expect(getFirstColumnValue()).toContain('Country_9');
-    await clickColumn(user, 7); // Referer column - ASC
-    expect(getFirstColumnValue()).toContain('Country_1');
-    await clickColumn(user, 7); // Referer column - DESC
-    expect(getFirstColumnValue()).toContain('Country_9');
-    await clickColumn(user, 7); // Referer column - reset
-    expect(getFirstColumnValue()).toContain('Country_1');
+    expect(getFirstColumnValue(screen)).toContain('Country_1');
+    await clickColumn(screen, 2); // Date column ASC
+    expect(getFirstColumnValue(screen)).toContain('Country_9');
+    await clickColumn(screen, 7); // Referer column - ASC
+    expect(getFirstColumnValue(screen)).toContain('Country_1');
+    await clickColumn(screen, 7); // Referer column - DESC
+    expect(getFirstColumnValue(screen)).toContain('Country_9');
+    await clickColumn(screen, 7); // Referer column - reset
+    expect(getFirstColumnValue(screen)).toContain('Country_1');
   });
 
   it('filters list when writing in search box', async () => {
-    const { user } = setUp([
+    const { user, ...screen } = await setUp([
       ...rangeOf(7, () => fromPartial<NormalizedVisit>({ browser: 'aaa', date: '2022-01-01', referer: 'aaa' })),
       ...rangeOf(2, () => fromPartial<NormalizedVisit>({ browser: 'bbb', date: '2022-01-01', referer: 'bbb' })),
     ]);
@@ -132,7 +132,7 @@ describe('<VisitsTable />', () => {
     const visits = rangeOf(50, (index) =>
       fromPartial<NormalizedVisit>({ country: `country${index}`, browser: '', date: '2022-01-01', referer: '' }),
     );
-    const { user } = setUp(visits, [visits[1], visits[2]]);
+    const { user, ...screen } = await setUp(visits, [visits[1], visits[2]]);
 
     // Jump to second page, and then set some filtering text
     await user.click(screen.getByRole('button', { name: '2' }));
@@ -147,7 +147,7 @@ describe('<VisitsTable />', () => {
   it.each([{ withVisitedUrl: true }, { withVisitedUrl: false }])(
     'displays proper amount of columns based on visited URL',
     async ({ withVisitedUrl }) => {
-      setUp([
+      const screen = await setUp([
         fromPartial<NormalizedRegularVisit>({
           visitedUrl: withVisitedUrl ? 'visited_url' : undefined,
           date: '2020-01-01T09:09:09',
@@ -167,7 +167,7 @@ describe('<VisitsTable />', () => {
   );
 
   it('displays bots icon when a visit is a potential bot', async () => {
-    setUpWithBots();
+    const screen = await setUpWithBots();
     const [, , nonBotVisitRow, botVisitRow] = screen.getByRole('row').elements();
 
     await Promise.all([
@@ -214,8 +214,8 @@ describe('<VisitsTable />', () => {
       referer: false,
       visitedUrl: false,
     } satisfies Required<VisitsListSettings['columns']>,
-  ])('only shows enabled columns', (columns) => {
-    setUpWithSettings({ columns });
+  ])('only shows enabled columns', async (columns) => {
+    const screen = await setUpWithSettings({ columns });
 
     const columnEntries = Object.entries(columns);
     const enabledColumnEntries = columnEntries.filter(([, enabled]) => enabled);

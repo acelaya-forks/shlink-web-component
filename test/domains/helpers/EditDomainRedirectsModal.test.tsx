@@ -1,6 +1,5 @@
 import type { ShlinkApiClient } from '@shlinkio/shlink-js-sdk';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { ShlinkDomain } from '../../../src/api-contract';
 import { EditDomainRedirectsModal } from '../../../src/domains/helpers/EditDomainRedirectsModal';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -20,12 +19,12 @@ describe('<EditDomainRedirectsModal />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('renders domain in header', async () => {
-    setUp();
+    const screen = await setUp();
     await expect.element(screen.getByRole('heading')).toHaveTextContent('Edit redirects for foo.com');
   });
 
   it('has different handlers to onClose the modal', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     expect(onClose).not.toHaveBeenCalled();
     await user.click(screen.getByLabelText('Close dialog'));
@@ -34,7 +33,7 @@ describe('<EditDomainRedirectsModal />', () => {
   });
 
   it('saves expected values when form is submitted', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
     const submitForm = () => user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(editDomainRedirects).not.toHaveBeenCalled();

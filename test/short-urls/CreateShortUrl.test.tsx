@@ -1,6 +1,5 @@
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
-import { page as screen } from 'vitest/browser';
 import { SettingsProvider } from '../../src/settings';
 import { CreateShortUrl } from '../../src/short-urls/CreateShortUrl';
 import { checkAccessibility } from '../__helpers__/accessibility';
@@ -25,7 +24,7 @@ describe('<CreateShortUrl />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it.each([undefined, 'https://example.com'])('renders initial long URL', async (longUrl) => {
-    setUp(longUrl);
+    const screen = await setUp(longUrl);
     const input = screen.getByPlaceholder('URL to be shortened');
 
     if (longUrl) {

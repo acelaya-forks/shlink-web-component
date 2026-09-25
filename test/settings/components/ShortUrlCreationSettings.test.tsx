@@ -1,5 +1,4 @@
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import type { ShortUrlCreationSettings as ShortUrlsSettings } from '../../../src/settings';
 import { SettingsProvider } from '../../../src/settings';
 import { ShortUrlCreationSettings } from '../../../src/settings/components/ShortUrlCreationSettings';
@@ -24,7 +23,7 @@ describe('<ShortUrlCreationSettings />', () => {
   ])('forward query switch is toggled if option is true', async (shortUrlCreation, expectedChecked) => {
     const matcher = /^Make all new short URLs forward their query params to the long URL/;
 
-    setUp(shortUrlCreation);
+    const screen = await setUp(shortUrlCreation);
 
     const checkbox = screen.getByLabelText(matcher);
     const helpText = screen.getByTestId('forward-query-help-text');
@@ -49,7 +48,7 @@ describe('<ShortUrlCreationSettings />', () => {
     [{ tagFilteringMode: 'startsWith' } as ShortUrlsSettings, 'Suggest tags starting with input', 'starting with'],
     [undefined, 'Suggest tags starting with input', 'starting with'],
   ])('shows expected texts for tags suggestions', async (shortUrlCreation, expectedText, expectedHint) => {
-    setUp(shortUrlCreation);
+    const screen = await setUp(shortUrlCreation);
 
     await expect.element(screen.getByRole('button', { name: expectedText })).toBeInTheDocument();
     await expect
@@ -60,7 +59,7 @@ describe('<ShortUrlCreationSettings />', () => {
   it.each([[true], [false]])(
     'invokes setShortUrlCreationSettings when forward query toggle value changes',
     async (forwardQuery) => {
-      const { user } = setUp({ forwardQuery });
+      const { user, ...screen } = await setUp({ forwardQuery });
 
       expect(setShortUrlCreationSettings).not.toHaveBeenCalled();
       await user.click(screen.getByLabelText(/^Make all new short URLs forward their query params to the long URL/));
@@ -71,7 +70,7 @@ describe('<ShortUrlCreationSettings />', () => {
   );
 
   it('invokes setShortUrlCreationSettings when dropdown value changes', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
     const clickItem = async (name: string) => {
       await user.click(screen.getByRole('button', { name: 'Suggest tags starting with input' }));
       await user.click(screen.getByRole('menuitem', { name }));

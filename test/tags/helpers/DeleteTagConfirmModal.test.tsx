@@ -1,6 +1,5 @@
 import type { ShlinkApiClient } from '@shlinkio/shlink-js-sdk';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { page as screen } from 'vitest/browser';
 import { DeleteTagConfirmModal } from '../../../src/tags/helpers/DeleteTagConfirmModal';
 import type { TagDeletion } from '../../../src/tags/reducers/tagDelete';
 import { checkAccessibility } from '../../__helpers__/accessibility';
@@ -19,7 +18,7 @@ describe('<DeleteTagConfirmModal />', () => {
   it('passes a11y checks', () => checkAccessibility(setUp()));
 
   it('asks confirmation for provided tag to be deleted', async () => {
-    setUp();
+    const screen = await setUp();
 
     const delBtn = screen.getByRole('button', { name: 'Delete tag' });
 
@@ -33,12 +32,12 @@ describe('<DeleteTagConfirmModal />', () => {
   });
 
   it('shows error message when deletion failed', async () => {
-    setUp({ status: 'error' });
+    const screen = await setUp({ status: 'error' });
     await expect.element(screen.getByText('Something went wrong while deleting the tag :(')).toBeInTheDocument();
   });
 
   it('shows loading status while deleting', async () => {
-    setUp({ status: 'deleting' });
+    const screen = await setUp({ status: 'deleting' });
 
     const delBtn = screen.getByRole('button', { name: 'Deleting tag...' });
 
@@ -46,7 +45,7 @@ describe('<DeleteTagConfirmModal />', () => {
   });
 
   it('hides tag modal when btn is clicked', async () => {
-    const { user } = setUp({ status: 'deleted' });
+    const { user, ...screen } = await setUp({ status: 'deleted' });
 
     await user.click(screen.getByRole('button', { name: 'Delete tag' }));
 
@@ -54,7 +53,7 @@ describe('<DeleteTagConfirmModal />', () => {
   });
 
   it('does no further actions when modal is closed without deleting tag', async () => {
-    const { user } = setUp();
+    const { user, ...screen } = await setUp();
 
     await user.click(screen.getByLabelText('Close dialog'));
 
