@@ -11,7 +11,7 @@ import { FeaturesProvider } from '../../src/utils/features';
 import { RoutesPrefixProvider } from '../../src/utils/routesPrefix';
 import { checkAccessibility } from '../__helpers__/accessibility';
 import { setNativeInputValue } from '../__helpers__/input';
-import type { RenderWithEventsResult} from '../__helpers__/setUpTest';
+import type { RenderWithEventsResult } from '../__helpers__/setUpTest';
 import { renderWithStore } from '../__helpers__/setUpTest';
 import { colorGeneratorMock } from '../utils/services/__mocks__/ColorGenerator.mock';
 

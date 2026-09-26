@@ -4,7 +4,7 @@ import { formatISO } from 'date-fns';
 import { ShortUrlForm } from '../../src/short-urls/ShortUrlForm';
 import { checkAccessibility } from '../__helpers__/accessibility';
 import { setNativeInputValue } from '../__helpers__/input';
-import type { RenderWithEventsResult} from '../__helpers__/setUpTest';
+import type { RenderWithEventsResult } from '../__helpers__/setUpTest';
 import { renderWithStore } from '../__helpers__/setUpTest';
 
 type SetUpOptions = {

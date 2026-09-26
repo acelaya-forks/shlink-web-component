@@ -6,7 +6,7 @@ import { RoutesPrefixProvider } from '../../src/utils/routesPrefix';
 import type { VisitsComparison } from '../../src/visits/visits-comparison/VisitsComparisonContext';
 import { VisitsComparisonProvider } from '../../src/visits/visits-comparison/VisitsComparisonContext';
 import { checkAccessibility } from '../__helpers__/accessibility';
-import type { RenderWithEventsResult} from '../__helpers__/setUpTest';
+import type { RenderWithEventsResult } from '../__helpers__/setUpTest';
 import { renderWithStore } from '../__helpers__/setUpTest';
 import { colorGeneratorMock } from '../utils/services/__mocks__/ColorGenerator.mock';
 
