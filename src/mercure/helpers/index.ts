@@ -17,9 +17,11 @@ export const bindToMercureTopic = <T>(
   const subscriptions = topics.map((topic) => {
     const hubUrl = new URL(mercureInfo.mercureHubUrl);
     hubUrl.searchParams.append(mercureVersion === 'v0' ? 'topic' : 'match', topic);
-    hubUrl.searchParams.append('authorization', mercureInfo.token);
 
-    const es = new EventSource(hubUrl);
+    // Set the token in a cookie, then create the EventSource with credentials so that the cookie is forwarded
+    const cookieName = mercureVersion === 'v0' ? 'mercureAuthorization' : 'mercure_access_token';
+    document.cookie = `${cookieName}=${mercureInfo.token};domain=${hubUrl.hostname};path=${hubUrl.pathname};`;
+    const es = new EventSource(hubUrl, { withCredentials: true });
 
     es.onmessage = onEventSourceMessage;
     // When an error occurs, invoke onTokenExpired just in case that was the issue
